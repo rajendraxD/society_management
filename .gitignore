@@ -24,7 +24,8 @@ log.txt
 /plugins
 
 # Compiled output
-/dist
+# /dist
+frontend/dist/
 /tmp
 /out-tsc
 /bazel-out
