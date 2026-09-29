@@ -79,7 +79,11 @@ export class LoginComponent implements OnInit {
     try {
       const user = await this.authService.login(this.email.trim(), this.password);
       await loading.dismiss();
-      this.router.navigate([ROLE_CONFIGS[user.role].homePath]);
+      // Replaced, not pushed: the sign-in screens are finished with, so back
+      // from a portal should leave the app rather than re-enter them.
+      this.router.navigate([ROLE_CONFIGS[user.role].homePath], {
+        replaceUrl: true,
+      });
     } catch (error) {
       await loading.dismiss();
       const toast = await this.toastCtrl.create({

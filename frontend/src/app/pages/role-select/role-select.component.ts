@@ -33,6 +33,8 @@ export class RoleSelectComponent {
 
   chooseRole(role: UserRole) {
     this.authService.setRole(role);
-    this.router.navigate(["/login"]);
+    // Replaced too, so the picker is not left one step behind the login screen
+    // in the back stack.
+    this.router.navigate(["/login"], { replaceUrl: true });
   }
 }

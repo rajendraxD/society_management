@@ -546,24 +546,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-
-  .switch-role-btn {
-    width: 100%;
-    padding: 14px;
-    background: var(--role-admin-tint);
-    border: 1.5px solid #BFDBFE;
-    color: var(--role-admin);
-    border-radius: var(--r-md);
-    font-size: 13px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--sp-2);
-    cursor: pointer;
-
-    &:active { background: #DBEAFE; }
-  }
 }
 
 /* MODALS */

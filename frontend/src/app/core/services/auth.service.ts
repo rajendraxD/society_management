@@ -108,7 +108,12 @@ export class AuthService {
         localStorage.removeItem(USER_STORAGE_KEY);
       }
     }
-    void this.restoreSession();
+    // Deferred by a microtask: the refresh request runs the auth interceptor,
+    // which injects AuthService. Starting it here would resolve the service
+    // while it is still under construction and throw NG0200 (circular
+    // dependency), which the guard would read as a dead session and bounce the
+    // user to role-select on every reload.
+    queueMicrotask(() => void this.restoreSession());
   }
 
   get currentRole(): UserRole {
@@ -158,7 +163,8 @@ export class AuthService {
       // local session is cleared regardless.
     }
     this.clearSession();
-    this.router.navigate(["/role-select"]);
+    // Replaced so back cannot walk into the portal shell after signing out.
+    this.router.navigate(["/role-select"], { replaceUrl: true });
   }
 
   /**
