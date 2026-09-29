@@ -4,7 +4,7 @@
   "description": "Express.js + MongoDB backend for Society Management App",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npm install --include=dev && npm run build",
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
     "seed": "tsx src/seed/seed.ts"
