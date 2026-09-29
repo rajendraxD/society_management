@@ -1,0 +1,50 @@
+<ion-content [fullscreen]="true" class="role-select-content">
+  <div class="role-select-shell">
+
+    <!-- Navy hero: brand + society identity -->
+    <header class="brand-hero">
+      <div class="logo-tile">
+        <ion-icon name="business" aria-hidden="true"></ion-icon>
+      </div>
+      <h1 class="app-title">Harmony Heights</h1>
+      <p class="app-subtitle">Society Management System</p>
+      <span class="location-pill">
+        <span class="location-dot" aria-hidden="true"></span>
+        Andheri West, Mumbai · 248 Flats
+      </span>
+    </header>
+
+    <!-- White sheet holding the role picker -->
+    <section class="picker-sheet">
+      <h2 class="picker-label">Select Your Role</h2>
+
+      <div class="role-grid">
+        <button
+          type="button"
+          *ngFor="let r of roles"
+          class="role-tile"
+          [style.background]="r.gradient"
+          (click)="chooseRole(r.id)"
+        >
+          <span class="role-tile__chevron" aria-hidden="true">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </span>
+          <span class="role-tile__emoji" aria-hidden="true">{{ r.emoji }}</span>
+          <span class="role-tile__name">{{ r.title }}</span>
+          <span class="role-tile__tagline">{{ r.tagline }}</span>
+        </button>
+      </div>
+
+      <div class="secure-note">
+        <span class="secure-note__icon" aria-hidden="true">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+        </span>
+        <span class="secure-note__meta">
+          <span class="secure-note__title">Secure &amp; Encrypted</span>
+          <span class="secure-note__sub">256-bit SSL · Biometric · GDPR Compliant</span>
+        </span>
+      </div>
+    </section>
+
+  </div>
+</ion-content>

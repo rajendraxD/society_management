@@ -1,0 +1,395 @@
+<ion-content [fullscreen]="true">
+  <div class="app-shell">
+
+    <!-- ================= ROLE HEADER ================= -->
+    <header class="app-header app-header--committee">
+      <div class="app-header__inner">
+        <div *ngIf="activeTab === 'home'">
+          <span class="app-header__eyebrow">Committee Member</span>
+          <h1 class="app-header__title">{{ memberName }}</h1>
+          <p class="app-header__subtitle">{{ designation }} · {{ societyName }}</p>
+        </div>
+
+        <div *ngIf="activeTab === 'noc'">
+          <h1 class="app-header__title">NOC Management</h1>
+          <p class="app-header__subtitle">{{ pendingNOCs.length }} pending your approval</p>
+        </div>
+
+        <div *ngIf="activeTab === 'meetings'">
+          <h1 class="app-header__title">Meetings</h1>
+          <p class="app-header__subtitle">
+            {{ meetings.length }} upcoming · {{ nextMeeting?.pastMeetingsCount ?? 0 }} past
+          </p>
+        </div>
+
+        <div *ngIf="activeTab === 'finance'">
+          <h1 class="app-header__title">Financial Overview</h1>
+          <p class="app-header__subtitle">January 2025</p>
+        </div>
+
+        <div class="app-header__actions">
+          <button
+            *ngIf="activeTab === 'home'"
+            class="header-icon-btn"
+            (click)="switchTab('noc')"
+            [attr.aria-label]="pendingNOCs.length + ' pending NOC approvals'"
+          >
+            <ion-icon name="notifications-outline" aria-hidden="true"></ion-icon>
+            <span class="header-icon-btn__badge" *ngIf="pendingNOCs.length">{{ pendingNOCs.length }}</span>
+          </button>
+
+          <button
+            *ngIf="activeTab === 'meetings'"
+            class="header-icon-btn"
+            (click)="rsvpMeeting(nextMeeting!)"
+            aria-label="Schedule a meeting"
+          >
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-body">
+
+      <!-- ================= TAB 1: HOME ================= -->
+      <ng-container *ngIf="activeTab === 'home'">
+        <div class="stat-grid">
+          <button class="stat-card" (click)="switchTab('noc')">
+            <span class="stat-card__label">Pending NOCs</span>
+            <span class="stat-card__value text-violet">{{ stats.pendingNOCs }}</span>
+            <span class="stat-card__action">Review →</span>
+          </button>
+
+          <button class="stat-card" (click)="switchTab('noc')">
+            <span class="stat-card__label">Complaint Escalations</span>
+            <span class="stat-card__value text-red">{{ stats.complaintEscalations }}</span>
+            <span class="stat-card__action">Review →</span>
+          </button>
+
+          <button class="stat-card" (click)="switchTab('home')">
+            <span class="stat-card__label">Staff Approvals</span>
+            <span class="stat-card__value text-amber">{{ stats.staffApprovals }}</span>
+            <span class="stat-card__action">Review →</span>
+          </button>
+
+          <button class="stat-card" (click)="switchTab('finance')">
+            <span class="stat-card__label">Vendor Invoices</span>
+            <span class="stat-card__value text-violet">{{ stats.vendorInvoices }}</span>
+            <span class="stat-card__action">Review →</span>
+          </button>
+        </div>
+
+        <div class="next-meeting-card" *ngIf="nextMeeting">
+          <span class="next-meeting__eyebrow">NEXT MEETING</span>
+          <h3 class="next-meeting__title">{{ nextMeeting.title }} — {{ nextMeeting.subtitle }}</h3>
+          <p class="next-meeting__line">
+            <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+            {{ formatShortDate(nextMeeting.scheduledDate) }}
+            <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+            {{ formatTime(nextMeeting.scheduledDate) }}
+          </p>
+          <p class="next-meeting__line">
+            <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
+            {{ nextMeeting.venue }}
+          </p>
+
+          <div class="next-meeting__actions">
+            <button class="agenda-btn" (click)="viewAgenda()">View Agenda</button>
+            <button class="rsvp-btn" (click)="rsvpMeeting(nextMeeting)">RSVP</button>
+          </div>
+        </div>
+
+        <div class="app-card" *ngIf="snapshot">
+          <div class="card-header-row">
+            <span class="card-title">January Snapshot</span>
+          </div>
+
+          <div class="snapshot-row">
+            <span class="snapshot-label">Total Collection</span>
+            <span class="snapshot-value text-green">↗ {{ formatINR(snapshot.totalCollection) }}</span>
+          </div>
+          <div class="snapshot-row">
+            <span class="snapshot-label">Total Expenses</span>
+            <span class="snapshot-value text-red">↘ {{ formatINR(snapshot.totalExpenses) }}</span>
+          </div>
+          <div class="snapshot-row">
+            <span class="snapshot-label">Net Surplus</span>
+            <span class="snapshot-value text-green">↗ {{ formatINR(snapshot.netSurplus) }}</span>
+          </div>
+          <div class="snapshot-row">
+            <span class="snapshot-label">Collection Efficiency</span>
+            <span class="snapshot-value text-red">↘ {{ snapshot.collectionEfficiency }}%</span>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">My Recent Actions</span>
+          </div>
+
+          <div class="action-list" *ngIf="recentActions.length; else noActions">
+            <div class="action-row" *ngFor="let action of recentActions">
+              <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+              <div class="action-meta">
+                <span class="action-text">{{ action.text }}</span>
+                <span class="action-time">{{ action.time }}</span>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noActions>
+            <div class="empty-state">
+              <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+              <p>No recent committee actions.</p>
+            </div>
+          </ng-template>
+        </div>
+      </ng-container>
+
+      <!-- ================= TAB 2: NOC ================= -->
+      <ng-container *ngIf="activeTab === 'noc'">
+        <div class="noc-list" *ngIf="pendingNOCs.length; else noNocs">
+          <div class="noc-card" *ngFor="let noc of pendingNOCs">
+            <div class="noc-card__head">
+              <div>
+                <h3 class="noc-name">{{ noc.applicantName }}</h3>
+                <p class="noc-flat">Flat {{ noc.flatNumber }}</p>
+              </div>
+              <span class="noc-age">{{ formatTimeAgo(noc.appliedDate) }}</span>
+            </div>
+
+            <div class="noc-type-pill">
+              <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+              <span>{{ noc.nocType }}</span>
+            </div>
+
+            <div class="noc-card__actions">
+              <button class="noc-btn noc-btn--approve" (click)="approveNOC(noc)">
+                <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
+                Approve
+              </button>
+              <button class="noc-btn noc-btn--reject" (click)="rejectNOC(noc)">
+                <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+                Reject
+              </button>
+              <button class="noc-btn noc-btn--view" (click)="viewNocDetails(noc)">View</button>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noNocs>
+          <div class="empty-state">
+            <ion-icon name="checkmark-done-circle-outline" aria-hidden="true"></ion-icon>
+            <p>No pending NOC requests. Everything is reviewed.</p>
+          </div>
+        </ng-template>
+
+        <div class="app-card" *ngIf="nocTypes.length">
+          <div class="card-header-row">
+            <span class="card-title">NOC Types Available</span>
+          </div>
+
+          <div class="noc-types-grid">
+            <span class="noc-type-chip" *ngFor="let type of nocTypes">{{ type }}</span>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ================= TAB 3: MEETINGS ================= -->
+      <ng-container *ngIf="activeTab === 'meetings'">
+        <div class="meeting-hero" *ngIf="nextMeeting">
+          <span class="meeting-hero__eyebrow">UPCOMING</span>
+          <h2 class="meeting-hero__title">{{ nextMeeting.title }}</h2>
+          <p class="meeting-hero__subtitle">{{ nextMeeting.subtitle }}</p>
+
+          <div class="meeting-hero__meta">
+            <span>
+              <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+              {{ formatShortDate(nextMeeting.scheduledDate) }}
+            </span>
+            <span>
+              <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+              {{ formatTime(nextMeeting.scheduledDate) }}
+            </span>
+            <span>
+              <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
+              {{ nextMeeting.venue }}
+            </span>
+          </div>
+        </div>
+
+        <div class="section-title-row" *ngIf="nextMeeting">
+          <span class="section-title">Meeting Agenda</span>
+        </div>
+
+        <div class="agenda-list" *ngIf="nextMeeting; else noMeetings">
+          <div class="agenda-row" *ngFor="let item of nextMeeting.agendaItems; let i = index">
+            <span class="agenda-index">{{ i + 1 }}</span>
+            <span class="agenda-text">{{ item }}</span>
+          </div>
+        </div>
+
+        <ng-template #noMeetings>
+          <div class="empty-state">
+            <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+            <p>No meetings scheduled right now.</p>
+          </div>
+        </ng-template>
+
+        <div class="app-card" *ngIf="meetings.length > 1">
+          <div class="card-header-row">
+            <span class="card-title">Other Meetings</span>
+          </div>
+
+          <div class="other-meetings">
+            <div class="other-meeting" *ngFor="let meeting of meetings.slice(1)">
+              <div class="other-meeting__meta">
+                <span class="other-meeting__title">{{ meeting.title }}</span>
+                <span class="other-meeting__sub">
+                  {{ formatShortDate(meeting.scheduledDate) }} · {{ meeting.venue }}
+                </span>
+              </div>
+              <span class="status-chip">{{ meeting.status }}</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ================= TAB 4: FINANCE ================= -->
+      <ng-container *ngIf="activeTab === 'finance'">
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">Monthly Collection (₹L)</span>
+          </div>
+
+          <div class="grouped-bars">
+            <div class="bar-group" *ngFor="let item of monthlyCollection">
+              <div class="bar-pair">
+                <div
+                  class="bar bar--income"
+                  [style.height.%]="(item.income / maxMonthlyValue) * 100"
+                  [title]="item.month + ' income: ₹' + item.income + 'L'"
+                ></div>
+                <div
+                  class="bar bar--expense"
+                  [style.height.%]="(item.expense / maxMonthlyValue) * 100"
+                  [title]="item.month + ' expense: ₹' + item.expense + 'L'"
+                ></div>
+              </div>
+              <span class="bar-group__label">{{ item.month }}</span>
+            </div>
+          </div>
+
+          <div class="chart-legend">
+            <span class="chart-legend__item">
+              <span class="chart-legend__dot chart-legend__dot--income"></span> Income
+            </span>
+            <span class="chart-legend__item">
+              <span class="chart-legend__dot chart-legend__dot--expense"></span> Expense
+            </span>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">Fund Balances</span>
+          </div>
+
+          <div class="fund-list" *ngIf="fundBalances.length; else noFunds">
+            <div class="fund-row" *ngFor="let fund of fundBalances">
+              <span class="fund-dot" [style.background]="fund.color"></span>
+              <span class="fund-name">{{ fund.name }}</span>
+              <span class="fund-amount">{{ formatINR(fund.amount) }}</span>
+            </div>
+          </div>
+
+          <ng-template #noFunds>
+            <div class="empty-state">
+              <ion-icon name="wallet-outline" aria-hidden="true"></ion-icon>
+              <p>Fund balances are not available.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">Pending Vendor Payments</span>
+          </div>
+
+          <div class="fund-list" *ngIf="vendorPayments.length; else noVendors">
+            <div class="fund-row" *ngFor="let payment of vendorPayments">
+              <div class="vendor-meta">
+                <span class="fund-name">{{ payment.vendor }}</span>
+                <span class="vendor-due">Due {{ payment.dueDate }}</span>
+              </div>
+              <span class="vendor-amount">{{ formatINR(payment.amount) }}</span>
+            </div>
+          </div>
+
+          <ng-template #noVendors>
+            <div class="empty-state">
+              <ion-icon name="receipt-outline" aria-hidden="true"></ion-icon>
+              <p>No vendor payments pending.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <button class="sign-out-btn" (click)="signOut()">
+          <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+          <span>Sign Out</span>
+        </button>
+      </ng-container>
+
+    </div>
+
+    <app-bottom-tabs
+      [tabs]="tabs"
+      [activeTab]="activeTab"
+      role="committee"
+      (tabChange)="switchTab($event)"
+    ></app-bottom-tabs>
+  </div>
+
+  <!-- NOC DETAILS MODAL -->
+  <ion-modal [isOpen]="isDetailsModalOpen" (didDismiss)="closeDetailsModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="tertiary">
+          <ion-title>{{ selectedNoc?.nocType }} NOC</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeDetailsModal()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding" *ngIf="selectedNoc">
+        <div class="noc-modal">
+          <h2>{{ selectedNoc.applicantName }}</h2>
+          <p class="text-muted">Flat {{ selectedNoc.flatNumber }} · Applied {{ formatShortDate(selectedNoc.appliedDate) }}</p>
+
+          <div class="noc-modal__box">
+            <span class="noc-modal__label">Reason</span>
+            <p class="noc-modal__reason">{{ selectedNoc.reason }}</p>
+          </div>
+
+          <div class="noc-modal__box" *ngIf="selectedNoc.documents.length">
+            <span class="noc-modal__label">Attached Documents</span>
+            <div class="doc-chip" *ngFor="let doc of selectedNoc.documents">
+              <ion-icon name="document-attach-outline" aria-hidden="true"></ion-icon>
+              <span>{{ doc }}</span>
+            </div>
+          </div>
+
+          <div class="noc-modal__actions">
+            <ion-button expand="block" shape="round" color="success" (click)="approveNOC(selectedNoc)">
+              Approve NOC
+            </ion-button>
+            <ion-button expand="block" shape="round" fill="outline" color="danger" (click)="rejectNOC(selectedNoc)">
+              Reject NOC
+            </ion-button>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

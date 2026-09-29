@@ -1,0 +1,262 @@
+<ion-content [fullscreen]="true">
+  <div class="app-shell">
+
+    <!-- ================= ROLE HEADER ================= -->
+    <header class="app-header app-header--security">
+      <div class="app-header__inner">
+        <div *ngIf="activeTab === 'home'">
+          <span class="app-header__eyebrow">Gate Security</span>
+          <h1 class="app-header__title">{{ guardName }}</h1>
+          <p class="app-header__subtitle">
+            <span class="duty-dot" aria-hidden="true"></span>
+            On duty · {{ gate }} · {{ shift }}
+          </p>
+        </div>
+
+        <div *ngIf="activeTab === 'entry'">
+          <h1 class="app-header__title">New Visitor Entry</h1>
+          <p class="app-header__subtitle">Register and verify before entry</p>
+        </div>
+
+        <div *ngIf="activeTab === 'log'">
+          <h1 class="app-header__title">Visitor Log</h1>
+          <p class="app-header__subtitle">
+            {{ currentDateText }} · {{ stats.totalLogEntries }} total entries
+          </p>
+        </div>
+
+        <div *ngIf="activeTab === 'alerts'">
+          <h1 class="app-header__title">Security Alerts</h1>
+          <p class="app-header__subtitle">
+            {{ stats.activeAlerts }} active · {{ stats.highPriorityAlerts }} high priority
+          </p>
+        </div>
+
+        <div class="app-header__actions" *ngIf="activeTab === 'home'">
+          <div class="gate-clock">
+            <span class="gate-clock__time">{{ clock }}</span>
+            <span class="gate-clock__date">{{ currentDateText }}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-body">
+
+      <!-- ================= TAB 1: HOME ================= -->
+      <ng-container *ngIf="activeTab === 'home'">
+        <div class="stat-strip">
+          <div class="stat-tile">
+            <span class="stat-tile__value text-red">{{ stats.visitorsToday }}</span>
+            <span class="stat-tile__label">Visitors today</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-tile__value text-amber">{{ stats.deliveriesToday }}</span>
+            <span class="stat-tile__label">Deliveries today</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-tile__value text-red">{{ stats.expectedToday }}</span>
+            <span class="stat-tile__label">Expected today</span>
+          </div>
+        </div>
+
+        <button class="new-entry-banner" (click)="switchTab('entry')">
+          <span class="new-entry-banner__icon">
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+          </span>
+          <span class="new-entry-banner__meta">
+            <span class="new-entry-banner__title">New Visitor Entry</span>
+            <span class="new-entry-banner__sub">Tap to register a visitor</span>
+          </span>
+        </button>
+
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">Recent Entries</span>
+            <span class="card-link" (click)="switchTab('log')">View all</span>
+          </div>
+
+          <div class="entry-list" *ngIf="visitors.length; else noEntries">
+            <div class="entry-row" *ngFor="let vis of visitors">
+              <span class="entry-avatar" [style.background]="visitorTint(vis.visitorType)">
+                <ion-icon [name]="visitorIcon(vis.visitorType)" aria-hidden="true"></ion-icon>
+              </span>
+
+              <div class="entry-meta">
+                <span class="entry-name">{{ vis.name }}</span>
+                <span class="entry-sub">{{ vis.destinationFlat }} · {{ formatTime(vis.inTime) }}</span>
+              </div>
+
+              <button class="entry-status" [class.entry-status--in]="vis.status === 'Inside'" (click)="markExit(vis)">
+                {{ vis.status === "Inside" ? "In" : "Out" }}
+              </button>
+            </div>
+          </div>
+
+          <ng-template #noEntries>
+            <div class="empty-state">
+              <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+              <p>No visitors inside the society right now.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">Expected Visitors</span>
+          </div>
+
+          <div class="entry-list" *ngIf="expectedVisitors.length; else noExpected">
+            <div class="entry-row" *ngFor="let exp of expectedVisitors">
+              <span class="entry-avatar entry-avatar--expected">
+                <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+              </span>
+
+              <div class="entry-meta">
+                <span class="entry-name">{{ exp.name }}</span>
+                <span class="entry-sub">{{ exp.destinationFlat }} · {{ formatTime(exp.expectedAt) }}</span>
+              </div>
+
+              <span class="status-chip" [class.status-chip--approved]="exp.status === 'Approved'">
+                {{ exp.status }}
+              </span>
+            </div>
+          </div>
+
+          <ng-template #noExpected>
+            <div class="empty-state">
+              <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+              <p>No pre-approved visitors pending today.</p>
+            </div>
+          </ng-template>
+        </div>
+      </ng-container>
+
+      <!-- ================= TAB 2: NEW ENTRY ================= -->
+      <ng-container *ngIf="activeTab === 'entry'">
+        <div class="app-card">
+          <label class="field-label">VISITOR TYPE</label>
+          <div class="type-pill-grid">
+            <button
+              class="type-pill"
+              *ngFor="let type of visitorTypes"
+              [class.type-pill--active]="visitorType === type"
+              (click)="selectType(type)"
+            >
+              {{ type }}
+            </button>
+          </div>
+
+          <label class="field-label" for="visitor-name">VISITOR NAME</label>
+          <input
+            id="visitor-name"
+            class="text-field"
+            type="text"
+            [(ngModel)]="name"
+            placeholder="Enter full name"
+            autocomplete="name"
+          />
+
+          <label class="field-label" for="visitor-phone">PHONE NUMBER</label>
+          <input
+            id="visitor-phone"
+            class="text-field"
+            type="tel"
+            inputmode="tel"
+            [(ngModel)]="phone"
+            placeholder="+91 99999 99999"
+            autocomplete="tel"
+          />
+
+          <label class="field-label" for="visitor-flat">FLAT TO VISIT</label>
+          <input
+            id="visitor-flat"
+            class="text-field"
+            type="text"
+            [(ngModel)]="destinationFlat"
+            placeholder="e.g. A-404"
+          />
+
+          <div class="entry-tools">
+            <button class="tool-btn" (click)="capturePhoto()">
+              <ion-icon name="camera-outline" aria-hidden="true"></ion-icon>
+              <span>Capture Photo</span>
+            </button>
+            <button class="tool-btn" (click)="sendOTP()">
+              <ion-icon name="call-outline" aria-hidden="true"></ion-icon>
+              <span>Send OTP</span>
+            </button>
+          </div>
+
+          <button class="role-btn entry-submit" [disabled]="isSubmitting" (click)="registerEntry()">
+            {{ isSubmitting ? "Registering…" : "Register Entry" }}
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- ================= TAB 3: VISITOR LOG ================= -->
+      <ng-container *ngIf="activeTab === 'log'">
+        <div class="log-list" *ngIf="gateLog.length; else noLog">
+          <div class="log-row" *ngFor="let entry of gateLog">
+            <span class="entry-avatar" [style.background]="visitorTint(entry.visitorType)">
+              <ion-icon [name]="visitorIcon(entry.visitorType)" aria-hidden="true"></ion-icon>
+            </span>
+
+            <div class="log-meta">
+              <span class="entry-name">{{ entry.name }}</span>
+              <span class="entry-sub">{{ entry.destinationFlat }}</span>
+            </div>
+
+            <div class="log-times">
+              <span class="log-in">IN {{ formatTime(entry.inTime) }}</span>
+              <span class="log-out" *ngIf="entry.outTime">OUT {{ formatTime(entry.outTime) }}</span>
+              <span class="log-out log-out--open" *ngIf="!entry.outTime">OUT —</span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noLog>
+          <div class="empty-state">
+            <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+            <p>No gate entries recorded today.</p>
+          </div>
+        </ng-template>
+      </ng-container>
+
+      <!-- ================= TAB 4: ALERTS ================= -->
+      <ng-container *ngIf="activeTab === 'alerts'">
+        <div class="alert-list" *ngIf="alerts.length; else noAlerts">
+          <div class="alert-row" [class]="'alert-row--' + alertTone(alert.severity)" *ngFor="let alert of alerts">
+            <div class="alert-row__meta">
+              <span class="alert-row__text">{{ alert.text }}</span>
+              <span class="alert-row__time">{{ alert.time }}</span>
+            </div>
+            <span class="severity-chip" [class]="'severity-chip--' + alertTone(alert.severity)">
+              {{ alert.severity }}
+            </span>
+          </div>
+        </div>
+
+        <ng-template #noAlerts>
+          <div class="empty-state">
+            <ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon>
+            <p>No active security alerts. Gate is secure.</p>
+          </div>
+        </ng-template>
+
+        <button class="sign-out-btn" (click)="signOut()">
+          <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+          <span>Sign Out</span>
+        </button>
+      </ng-container>
+
+    </div>
+
+    <app-bottom-tabs
+      [tabs]="tabs"
+      [activeTab]="activeTab"
+      role="security"
+      (tabChange)="switchTab($event)"
+    ></app-bottom-tabs>
+  </div>
+</ion-content>

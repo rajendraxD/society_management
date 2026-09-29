@@ -1,0 +1,15 @@
+<nav class="bottom-tab-bar" [class]="'bottom-tab-bar--' + role" role="tablist">
+  <button
+    *ngFor="let tab of tabs"
+    type="button"
+    role="tab"
+    class="tab-item"
+    [class.active]="activeTab === tab.id"
+    [attr.aria-selected]="activeTab === tab.id"
+    [attr.aria-label]="tab.label"
+    (click)="select(tab.id)"
+  >
+    <ion-icon [name]="activeTab === tab.id ? tab.iconActive : tab.icon"></ion-icon>
+    <span>{{ tab.label }}</span>
+  </button>
+</nav>

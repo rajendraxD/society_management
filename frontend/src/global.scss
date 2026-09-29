@@ -1,0 +1,368 @@
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/* =====================================================================
+   DESIGN TOKENS
+   Single source of truth for colour, spacing, radius, shadow and type.
+   Every role screen composes these instead of hardcoding values.
+   ===================================================================== */
+:root {
+  --ion-font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Role identities */
+  --role-admin: #1e40af;
+  --role-admin-gradient: linear-gradient(135deg, #1e40af 0%, #2563eb 60%, #3b82f6 100%);
+  --role-admin-tint: #eff6ff;
+  --role-admin-shadow: rgba(30, 64, 175, 0.22);
+
+  --role-resident: #059669;
+  --role-resident-gradient: linear-gradient(135deg, #047857 0%, #059669 60%, #10b981 100%);
+  --role-resident-tint: #ecfdf5;
+  --role-resident-shadow: rgba(5, 150, 105, 0.22);
+
+  --role-security: #dc2626;
+  --role-security-gradient: linear-gradient(135deg, #b91c1c 0%, #dc2626 60%, #ef4444 100%);
+  --role-security-tint: #fef2f2;
+  --role-security-shadow: rgba(220, 38, 38, 0.22);
+
+  --role-committee: #7c3aed;
+  --role-committee-gradient: linear-gradient(135deg, #6d28d9 0%, #7c3aed 60%, #8b5cf6 100%);
+  --role-committee-tint: #f5f3ff;
+  --role-committee-shadow: rgba(124, 58, 237, 0.22);
+
+  /* Semantic status colours */
+  --c-success: #059669;
+  --c-success-bg: #d1fae5;
+  --c-warning: #d97706;
+  --c-warning-bg: #fef3c7;
+  --c-danger: #dc2626;
+  --c-danger-bg: #fee2e2;
+  --c-info: #2563eb;
+  --c-info-bg: #dbeafe;
+
+  /* Neutrals */
+  --bg-page: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-subtle: #f8fafc;
+  --text-main: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --text-sub: #94a3b8;
+  --border-subtle: #e2e8f0;
+  --border-light: #f1f5f9;
+
+  /* Elevation */
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.08);
+
+  /* Radius scale */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 20px;
+  --r-pill: 999px;
+
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+
+  /* Layout */
+  --app-max-width: 480px;
+  --tab-bar-height: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  font-family: var(--ion-font-family);
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--ion-font-family);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+ion-content {
+  --background: var(--bg-page);
+  --color: var(--text-main);
+}
+
+/* =====================================================================
+   SHARED LAYOUT PRIMITIVES
+   ===================================================================== */
+
+/* Centred phone-width column that every role screen sits inside. */
+.app-shell {
+  max-width: var(--app-max-width);
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+  position: relative;
+  /* Clear the fixed tab bar plus the device home indicator. */
+  padding-bottom: calc(var(--tab-bar-height) + var(--safe-bottom) + 16px);
+}
+
+.app-shell--no-tabs {
+  padding-bottom: var(--sp-5);
+}
+
+/* Role-tinted rounded header. Set --header-gradient / --header-shadow
+   on the element (or a role modifier below) to re-colour it. */
+.app-header {
+  background: var(--header-gradient, var(--role-admin-gradient));
+  padding: 38px var(--sp-5) 22px;
+  color: #ffffff;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  box-shadow: 0 8px 20px var(--header-shadow, var(--role-admin-shadow));
+}
+
+.app-header--admin { --header-gradient: var(--role-admin-gradient); --header-shadow: var(--role-admin-shadow); }
+.app-header--resident { --header-gradient: var(--role-resident-gradient); --header-shadow: var(--role-resident-shadow); }
+.app-header--security { --header-gradient: var(--role-security-gradient); --header-shadow: var(--role-security-shadow); }
+.app-header--committee { --header-gradient: var(--role-committee-gradient); --header-shadow: var(--role-committee-shadow); }
+
+.app-header__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sp-3);
+}
+
+.app-header__eyebrow {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.9;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.app-header__title {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.app-header__subtitle {
+  font-size: 12px;
+  opacity: 0.85;
+  margin: 3px 0 0;
+}
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+/* Circular translucent icon button used in every header. */
+.header-icon-btn {
+  position: relative;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:active { background: rgba(255, 255, 255, 0.32); }
+}
+
+.header-icon-btn__badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--r-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+/* Small translucent pill (e.g. "Switch Role"). */
+.header-pill-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 7px 14px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+
+  &:active { background: rgba(255, 255, 255, 0.32); }
+}
+
+.app-body {
+  padding: var(--sp-4) var(--sp-4) var(--sp-5);
+  flex: 1;
+}
+
+/* =====================================================================
+   SHARED COMPONENTS
+   ===================================================================== */
+
+.app-card {
+  background: var(--bg-card);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-4);
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .card-link {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--c-info);
+    cursor: pointer;
+  }
+}
+
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: var(--sp-4) var(--sp-1) var(--sp-3);
+
+  &:first-child { margin-top: 0; }
+
+  .section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .section-action {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--c-info);
+    cursor: pointer;
+  }
+}
+
+/* Text colour helpers */
+.text-green { color: var(--c-success); }
+.text-amber { color: var(--c-warning); }
+.text-red { color: var(--c-danger); }
+.text-blue { color: var(--c-info); }
+.text-violet { color: var(--role-committee); }
+.text-muted { color: var(--text-muted); }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+
+/* Full-width primary action, tinted by the current role. */
+.role-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--role-color, var(--role-admin));
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:active { opacity: 0.88; }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+/* Sign-out row shared by every Account / Support / Alerts screen. */
+.sign-out-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--c-danger-bg);
+  border: 1px solid #fecaca;
+  color: var(--c-danger);
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:active { background: #fecaca; }
+}
+
+/* Uniform empty state used across all lists. */
+.empty-state {
+  text-align: center;
+  padding: 36px var(--sp-5);
+  color: var(--text-muted);
+
+  ion-icon {
+    font-size: 44px;
+    margin-bottom: var(--sp-3);
+    opacity: 0.5;
+  }
+
+  p {
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+/* Thin custom scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

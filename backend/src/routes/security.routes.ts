@@ -1,0 +1,26 @@
+import { Router } from "express";
+import { SecurityController } from "../controllers/security.controller.js";
+import { validate } from "../middleware/validate.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
+import {
+  checkInVisitorSchema,
+  visitorIdParamSchema,
+} from "../validations/society.validations.js";
+
+const router = Router();
+
+router.use(requireAuth, requireRole("security"));
+
+router.get("/dashboard", SecurityController.getGateDashboard);
+router.post(
+  "/check-in",
+  validate(checkInVisitorSchema),
+  SecurityController.checkInVisitor
+);
+router.post(
+  "/check-out/:visitorId",
+  validate(visitorIdParamSchema, "params"),
+  SecurityController.checkOutVisitor
+);
+
+export default router;

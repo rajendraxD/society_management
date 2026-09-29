@@ -1,0 +1,9 @@
+node_modules/
+dist/
+
+# Never commit secrets
+.env
+.env.*
+!.env.example
+
+*.log

@@ -1,0 +1,406 @@
+/* Security-specific rules only. Layout, header, cards and text colours
+   come from the shared design system in src/global.scss. */
+
+/* ================= HEADER ================= */
+.duty-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ADE80;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.gate-clock {
+  text-align: right;
+
+  .gate-clock__time {
+    display: block;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+
+  .gate-clock__date {
+    font-size: 11px;
+    opacity: 0.85;
+  }
+}
+
+/* ================= HOME STAT STRIP ================= */
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: var(--sp-3);
+}
+
+.stat-tile {
+  background: var(--bg-card);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 10px;
+  text-align: center;
+
+  .stat-tile__value {
+    display: block;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .stat-tile__label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+}
+
+.new-entry-banner {
+  width: 100%;
+  background: var(--role-security-gradient);
+  border: none;
+  border-radius: var(--r-xl);
+  padding: var(--sp-4);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  box-shadow: 0 6px 18px var(--role-security-shadow);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: var(--sp-3);
+
+  &:active { opacity: 0.92; }
+
+  .new-entry-banner__icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+
+  .new-entry-banner__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .new-entry-banner__title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #FFFFFF;
+  }
+
+  .new-entry-banner__sub {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+/* ================= ENTRY ROWS (home + expected) ================= */
+.entry-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.entry-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-child { border-bottom: none; }
+
+  .entry-avatar {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--text-body);
+
+    &--expected { background: var(--bg-page); color: var(--text-muted); }
+  }
+
+  .entry-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    .entry-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .entry-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+  }
+
+  /* Doubles as the check-out action for anyone still inside. */
+  .entry-status {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: var(--r-pill);
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
+    flex-shrink: 0;
+    min-height: 32px;
+    background: var(--bg-page);
+    color: var(--text-muted);
+
+    &--in { background: var(--c-success-bg); color: var(--c-success); }
+  }
+}
+
+.status-chip {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+  background: var(--c-warning-bg);
+  color: var(--c-warning);
+
+  &--approved { background: var(--c-success-bg); color: var(--c-success); }
+}
+
+/* ================= NEW ENTRY FORM ================= */
+.field-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  margin: var(--sp-4) 0 var(--sp-2);
+
+  &:first-child { margin-top: 0; }
+}
+
+.type-pill-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.type-pill {
+  padding: 11px 8px;
+  min-height: 44px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  color: var(--text-body);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &--active {
+    border-color: var(--role-security);
+    background: var(--role-security-tint);
+    color: var(--role-security);
+    font-weight: 800;
+  }
+}
+
+.text-field {
+  width: 100%;
+  padding: 14px;
+  min-height: 48px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-main);
+
+  &::placeholder { color: var(--text-sub); }
+
+  &:focus {
+    outline: none;
+    border-color: var(--role-security);
+    background: #FFFFFF;
+  }
+}
+
+.entry-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: var(--sp-4) 0;
+
+  .tool-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 13px;
+    min-height: 48px;
+    border-radius: var(--r-md);
+    border: 1.5px solid var(--border-subtle);
+    background: var(--bg-subtle);
+    color: var(--text-body);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+
+    &:active { background: var(--border-subtle); }
+  }
+}
+
+.entry-submit { --role-color: var(--role-security); }
+
+/* ================= VISITOR LOG ================= */
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.log-row {
+  background: var(--bg-card);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+
+  .entry-avatar {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--text-body);
+  }
+
+  .log-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    .entry-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .entry-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+  }
+
+  .log-times {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+
+    .log-in,
+    .log-out {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .log-in { color: var(--c-success); }
+    .log-out { color: var(--c-danger); }
+    .log-out--open { color: var(--text-sub); }
+  }
+}
+
+/* ================= ALERTS ================= */
+.alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: var(--sp-4);
+}
+
+.alert-row {
+  background: var(--bg-card);
+  border-radius: var(--r-lg);
+  border-left: 4px solid var(--c-danger);
+  box-shadow: var(--shadow-sm);
+  padding: 14px var(--sp-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+
+  &--high { border-left-color: var(--c-danger); }
+  &--medium { border-left-color: var(--c-warning); }
+  &--low { border-left-color: var(--c-info); }
+
+  .alert-row__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+
+    .alert-row__text {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+
+    .alert-row__time {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: 500;
+    }
+  }
+}
+
+.severity-chip {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  flex-shrink: 0;
+
+  &--high { background: var(--c-danger-bg); color: var(--c-danger); }
+  &--medium { background: var(--c-warning-bg); color: var(--c-warning); }
+  &--low { background: var(--c-info-bg); color: var(--c-info); }
+}

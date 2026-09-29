@@ -1,0 +1,403 @@
+<ion-content [fullscreen]="true">
+  <div class="app-shell">
+
+    <!-- ================= ROLE HEADER ================= -->
+    <header class="app-header app-header--resident">
+      <div class="app-header__inner">
+        <div *ngIf="activeTab === 'home'">
+          <span class="app-header__eyebrow">Good Morning 👋</span>
+          <h1 class="app-header__title">{{ residentName }}</h1>
+          <p class="app-header__subtitle">
+            <ion-icon name="home-outline" aria-hidden="true"></ion-icon>
+            Flat {{ flatNumber }} · Tower {{ tower }} · {{ floor }}
+          </p>
+        </div>
+
+        <div *ngIf="activeTab === 'bills'">
+          <h1 class="app-header__title">Bills &amp; Payments</h1>
+          <p class="app-header__subtitle">Flat {{ flatNumber }}</p>
+        </div>
+
+        <div *ngIf="activeTab === 'visitors'">
+          <h1 class="app-header__title">Visitor Management</h1>
+          <p class="app-header__subtitle">Flat {{ flatNumber }}</p>
+        </div>
+
+        <div *ngIf="activeTab === 'support'">
+          <h1 class="app-header__title">Support &amp; Settings</h1>
+          <p class="app-header__subtitle">Help, documents and preferences</p>
+        </div>
+
+        <div class="app-header__actions">
+          <button
+            *ngIf="activeTab === 'home'"
+            class="header-icon-btn"
+            (click)="switchTab('home')"
+            [attr.aria-label]="notices.length + ' notices'"
+          >
+            <ion-icon name="notifications-outline" aria-hidden="true"></ion-icon>
+            <span class="header-icon-btn__badge" *ngIf="notices.length">{{ notices.length }}</span>
+          </button>
+
+          <button
+            *ngIf="activeTab === 'visitors'"
+            class="header-icon-btn"
+            (click)="openPreApproveModal()"
+            aria-label="Add expected visitor"
+          >
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-body">
+
+      <!-- ================= TAB 1: HOME ================= -->
+      <ng-container *ngIf="activeTab === 'home'">
+
+        <div class="bill-banner-card" [class.paid]="billPaid">
+          <div class="bill-banner__top">
+            <div>
+              <span class="bill-eyebrow">{{ billPaid ? "BILL PAID" : "BILL DUE" }}</span>
+              <div class="bill-amount" *ngIf="currentBill">
+                {{ formatINR(billPaid ? currentBill.amount : outstanding) }}
+              </div>
+              <p class="bill-month" *ngIf="currentBill">{{ currentBill.billingMonth }} Maintenance</p>
+              <p class="bill-due" *ngIf="currentBill && !billPaid">
+                <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+                Due: {{ formatShortDate(currentBill.dueDate) }}
+              </p>
+              <p class="bill-due bill-due--paid" *ngIf="billPaid">
+                <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+                All dues cleared
+              </p>
+            </div>
+
+            <button class="pay-btn" *ngIf="!billPaid" (click)="openPaymentModal()">Pay Now</button>
+            <span class="paid-badge" *ngIf="billPaid">Paid</span>
+          </div>
+
+          <div class="bill-breakdown" *ngIf="currentBill && !billPaid">
+            <span>Basic {{ formatINR(currentBill.maintenanceCharges) }}</span>
+            <span>Water {{ formatINR(currentBill.waterCharges) }}</span>
+            <span>Parking {{ formatINR(currentBill.parkingCharges) }}</span>
+            <span>Club {{ formatINR(currentBill.clubCharges) }}</span>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">Quick Actions</span>
+          </div>
+
+          <div class="quick-actions-grid">
+            <button
+              class="action-card"
+              *ngFor="let act of quickActions"
+              (click)="handleQuickAction(act.id)"
+            >
+              <div class="action-icon-wrap" [style.background]="act.bg">
+                <ion-icon [name]="act.icon" [style.color]="act.color" aria-hidden="true"></ion-icon>
+              </div>
+              <span class="action-label">{{ act.name }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">Notice Board</span>
+            <span class="card-link">View all</span>
+          </div>
+
+          <div class="notice-list" *ngIf="notices.length; else noNotices">
+            <div class="notice-row" *ngFor="let not of notices">
+              <span class="notice-dot" [class.notice-dot--urgent]="not.priority === 'Urgent'"></span>
+              <div class="notice-meta">
+                <span class="notice-title">{{ not.title }}</span>
+                <span class="notice-date">{{ formatDayMonth(not.publishedDate) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noNotices>
+            <div class="empty-state">
+              <ion-icon name="notifications-off-outline" aria-hidden="true"></ion-icon>
+              <p>No notices published yet.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="unit-stats-row">
+          <div class="unit-stat">
+            <span class="unit-stat__label">FAMILY</span>
+            <span class="unit-stat__value">{{ familyMembers.length }}</span>
+            <span class="unit-stat__sub">Members registered</span>
+          </div>
+
+          <div class="unit-stat">
+            <span class="unit-stat__label">VEHICLES</span>
+            <span class="unit-stat__value">{{ vehicles.length }}</span>
+            <span class="unit-stat__sub">{{ vehicleSummary }}</span>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ================= TAB 2: BILLS ================= -->
+      <ng-container *ngIf="activeTab === 'bills'">
+        <div class="app-card outstanding-card">
+          <div>
+            <span class="outstanding-label">Outstanding Balance</span>
+            <div class="outstanding-amount" [class.clear]="billPaid">{{ formatINR(outstanding) }}</div>
+          </div>
+          <button class="pay-btn" *ngIf="!billPaid" (click)="openPaymentModal()">Pay All</button>
+        </div>
+
+        <div class="section-title-row">
+          <span class="section-title">Bill History</span>
+        </div>
+
+        <div class="bill-history" *ngIf="allBills.length; else noBills">
+          <div class="bill-row" *ngFor="let bill of allBills">
+            <span class="bill-status-dot" [class]="'bill-status-dot--' + bill.status"></span>
+
+            <div class="bill-row__meta">
+              <span class="bill-row__month">{{ bill.billingMonth }}</span>
+              <span class="bill-row__date">
+                {{ bill.status === "paid" ? "Paid " + formatDayMonth(bill.paidDate!) : "Due " + formatShortDate(bill.dueDate) }}
+              </span>
+            </div>
+
+            <div class="bill-row__right">
+              <span class="bill-row__amount">{{ formatINR(bill.amount) }}</span>
+              <span class="bill-row__status" [class]="'text-' + billStatusTone(bill.status)">
+                {{ bill.status === "paid" ? "Paid ✓" : bill.status === "overdue" ? "Overdue" : "Pending" }}
+              </span>
+            </div>
+
+            <button
+              class="bill-download"
+              *ngIf="bill.status === 'paid'"
+              (click)="downloadReceipt(bill)"
+              [attr.aria-label]="'Download receipt for ' + bill.billingMonth"
+            >
+              <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <ng-template #noBills>
+          <div class="empty-state">
+            <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+            <p>No bills raised for this flat yet.</p>
+          </div>
+        </ng-template>
+      </ng-container>
+
+      <!-- ================= TAB 3: VISITORS ================= -->
+      <ng-container *ngIf="activeTab === 'visitors'">
+        <button class="add-expected-card" (click)="openPreApproveModal()">
+          <span class="add-expected__icon">
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+          </span>
+          <span class="add-expected__meta">
+            <span class="add-expected__title">Add Expected Visitor</span>
+            <span class="add-expected__sub">Generate QR gate pass for your guest</span>
+          </span>
+        </button>
+
+        <div class="section-title-row">
+          <span class="section-title">Today's Visitors</span>
+        </div>
+
+        <div class="visitor-list" *ngIf="visitors.length; else noVisitors">
+          <div class="visitor-row" *ngFor="let vis of visitors">
+            <span class="visitor-avatar" [style.background]="visitorTint(vis.visitorType)">
+              <ion-icon [name]="visitorIcon(vis.visitorType)" aria-hidden="true"></ion-icon>
+            </span>
+
+            <div class="visitor-meta">
+              <span class="visitor-name">{{ vis.name }}</span>
+              <span class="visitor-sub">{{ vis.visitorType }} · {{ formatTime(vis.inTime) }}</span>
+            </div>
+
+            <span class="status-chip" [class]="'status-chip--' + vis.status.toLowerCase()">
+              {{ visitorStatusLabel(vis) }}
+            </span>
+          </div>
+        </div>
+
+        <ng-template #noVisitors>
+          <div class="empty-state">
+            <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+            <p>No visitors today. Pre-approve a guest to generate a gate pass.</p>
+          </div>
+        </ng-template>
+      </ng-container>
+
+      <!-- ================= TAB 4: SUPPORT ================= -->
+      <ng-container *ngIf="activeTab === 'support'">
+        <div class="profile-card">
+          <div class="avatar-bubble">
+            <ion-icon name="person" aria-hidden="true"></ion-icon>
+          </div>
+          <div class="profile-meta">
+            <h2 class="profile-name">{{ residentName }}</h2>
+            <p class="profile-role">Flat {{ flatNumber }} · {{ ownership }}</p>
+            <p class="profile-email">{{ email }}</p>
+          </div>
+        </div>
+
+        <div class="settings-list-card">
+          <button
+            class="setting-item"
+            *ngFor="let link of supportLinks"
+            (click)="handleQuickAction(link.id)"
+          >
+            <div class="item-left">
+              <div class="item-icon-wrap">
+                <ion-icon [name]="link.icon" aria-hidden="true"></ion-icon>
+              </div>
+              <div class="item-meta">
+                <span class="item-title">{{ link.title }}</span>
+                <span class="item-sub">{{ link.sub }}</span>
+              </div>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="item-arrow" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+
+        <button class="sign-out-btn" (click)="signOut()">
+          <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+          <span>Sign Out</span>
+        </button>
+      </ng-container>
+
+    </div>
+
+    <app-bottom-tabs
+      [tabs]="tabs"
+      [activeTab]="activeTab"
+      role="resident"
+      (tabChange)="switchTab($event)"
+    ></app-bottom-tabs>
+  </div>
+
+  <!-- PAYMENT MODAL -->
+  <ion-modal [isOpen]="isPaymentModalOpen" (didDismiss)="closePaymentModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="success">
+          <ion-title>Pay Maintenance Bill</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closePaymentModal()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="payment-modal-body" *ngIf="currentBill">
+          <div class="bill-summary-box">
+            <span class="sum-flat">Flat {{ flatNumber }} · Harmony Heights</span>
+            <div class="sum-amount">{{ formatINR(currentBill.amount) }}</div>
+            <p class="sum-month">Maintenance Charges for {{ currentBill.billingMonth }}</p>
+
+            <div class="breakdown-lines">
+              <div class="b-line">
+                <span>Society Maintenance:</span>
+                <strong>{{ formatINR(currentBill.maintenanceCharges) }}</strong>
+              </div>
+              <div class="b-line">
+                <span>Water &amp; Pumping:</span>
+                <strong>{{ formatINR(currentBill.waterCharges) }}</strong>
+              </div>
+              <div class="b-line">
+                <span>Dedicated Parking Bay:</span>
+                <strong>{{ formatINR(currentBill.parkingCharges) }}</strong>
+              </div>
+              <div class="b-line">
+                <span>Club House Charges:</span>
+                <strong>{{ formatINR(currentBill.clubCharges) }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="payment-modes-box">
+            <h4>Select Payment Option</h4>
+            <div class="mode-option selected">
+              <ion-icon name="phone-portrait-outline" class="mode-icon" aria-hidden="true"></ion-icon>
+              <span>Instant UPI (GPay / PhonePe / Paytm)</span>
+            </div>
+            <div class="mode-option">
+              <ion-icon name="card-outline" class="mode-icon" aria-hidden="true"></ion-icon>
+              <span>Credit / Debit Card (Visa / RuPay)</span>
+            </div>
+          </div>
+
+          <ion-button
+            expand="block"
+            shape="round"
+            color="success"
+            [disabled]="isPaying"
+            (click)="confirmPayment()"
+          >
+            {{ isPaying ? "Processing…" : "Confirm & Pay " + formatINR(currentBill.amount) }}
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- PRE-APPROVE VISITOR MODAL -->
+  <ion-modal [isOpen]="isVisitorModalOpen" (didDismiss)="closeVisitorModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="success">
+          <ion-title>Pre-approve Visitor</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeVisitorModal()">Cancel</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="pre-approve-form">
+          <p class="modal-intro">
+            Your guest receives a 4-digit fast-entry code for Gate 1. No call to the flat needed.
+          </p>
+
+          <ion-item fill="outline" class="form-input">
+            <ion-label position="floating">Visitor Name</ion-label>
+            <ion-input [(ngModel)]="newVisitorName" placeholder="e.g. Ramesh Patel"></ion-input>
+          </ion-item>
+
+          <ion-item fill="outline" class="form-input">
+            <ion-label position="floating">Mobile Number</ion-label>
+            <ion-input
+              [(ngModel)]="newVisitorPhone"
+              type="tel"
+              inputmode="tel"
+              placeholder="e.g. 9820012345"
+            ></ion-input>
+          </ion-item>
+
+          <ion-item fill="outline" class="form-input">
+            <ion-label position="floating">Visitor Category</ion-label>
+            <ion-select [(ngModel)]="newVisitorType">
+              <ion-select-option value="Guest">Guest / Friend</ion-select-option>
+              <ion-select-option value="Delivery">Delivery (Zomato / Amazon)</ion-select-option>
+              <ion-select-option value="Cab">Cab (Uber / Ola)</ion-select-option>
+              <ion-select-option value="Vendor">Electrician / Plumber</ion-select-option>
+              <ion-select-option value="Staff">Domestic Help</ion-select-option>
+              <ion-select-option value="Other">Other</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-button expand="block" shape="round" color="success" class="mt-4" (click)="submitPreApprove()">
+            Approve Fast Gate Entry
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

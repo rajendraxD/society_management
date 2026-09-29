@@ -1,0 +1,136 @@
+<ion-content [fullscreen]="true" class="login-content">
+  <div class="login-screen-wrapper">
+    <!-- Header Section with Role Gradient -->
+    <div class="login-header-banner" [style.background]="roleConfig.gradient">
+      <div class="banner-nav">
+        <button
+          class="icon-back-btn"
+          type="button"
+          aria-label="Back to role selection"
+          (click)="goBack()"
+        >
+          <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+
+      <div class="banner-texts">
+        <span class="sub-greeting">WELCOME BACK</span>
+        <h1 class="main-heading">{{ roleConfig.title }} Login</h1>
+        <p class="society-name">Harmony Heights Society Portal</p>
+      </div>
+    </div>
+
+    <!-- Floating White Form Card -->
+    <div class="login-card-container">
+      <div class="login-card">
+        <!-- Active Role Pill -->
+        <div class="role-pill-badge">
+          <div class="pill-left">
+            <span class="pill-icon-box" aria-hidden="true">{{ roleConfig.emoji }}</span>
+            <div class="pill-text">
+              <span class="pill-title">{{ roleConfig.title }}</span>
+              <span class="pill-desc">{{ roleConfig.subtitle }}</span>
+            </div>
+          </div>
+          <button class="pill-switch-btn" type="button" (click)="goBack()">Switch</button>
+        </div>
+
+        <!-- Email / Mobile Field -->
+        <div class="form-group">
+          <label class="field-label" for="login-email">EMAIL / MOBILE NUMBER</label>
+          <div class="field-input-box">
+            <ion-icon name="mail-outline" class="field-icon" aria-hidden="true"></ion-icon>
+            <input
+              id="login-email"
+              type="text"
+              autocomplete="username"
+              [(ngModel)]="email"
+              class="custom-input"
+              placeholder="Enter email or phone"
+            />
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label class="field-label" for="login-password">PASSWORD</label>
+          <div class="field-input-box">
+            <ion-icon name="lock-closed-outline" class="field-icon" aria-hidden="true"></ion-icon>
+            <input
+              id="login-password"
+              [type]="showPassword ? 'text' : 'password'"
+              autocomplete="current-password"
+              [(ngModel)]="password"
+              class="custom-input"
+              placeholder="Enter password"
+            />
+            <button
+              class="eye-toggle-btn"
+              type="button"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              [attr.aria-pressed]="showPassword"
+              (click)="togglePasswordVisibility()"
+            >
+              <ion-icon
+                [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+                aria-hidden="true"
+              ></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Forgot Password -->
+        <div class="forgot-row">
+          <a class="forgot-link">Forgot Password?</a>
+        </div>
+
+        <!-- Sign In Button -->
+        <button
+          class="sign-in-btn"
+          type="button"
+          [style.background-image]="roleConfig.gradient"
+          (click)="signIn()"
+          [disabled]="isAuthenticating"
+        >
+          <span>{{ isAuthenticating ? "Signing In…" : "Sign In Securely" }}</span>
+          <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+        </button>
+
+        <!-- Divider -->
+        <div class="divider-row">
+          <div class="divider-line"></div>
+          <span class="divider-text">OR CONTINUE WITH</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <!-- Biometric & QR Code Buttons -->
+        <div class="alt-auth-row">
+          <button class="alt-auth-btn" type="button" (click)="biometricAuth()">
+            <span class="alt-icon-box" aria-hidden="true">
+              <ion-icon name="finger-print-outline"></ion-icon>
+            </span>
+            <span>Biometric</span>
+          </button>
+          <button class="alt-auth-btn" type="button" (click)="qrAuth()">
+            <span class="alt-icon-box" aria-hidden="true">
+              <ion-icon name="qr-code-outline"></ion-icon>
+            </span>
+            <span>QR Code</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Security Guarantee Footer -->
+      <div class="security-guarantee">
+        <span class="security-pill">
+          <span class="lock-emoji" aria-hidden="true">🔒</span>
+          <span>Secured by AES-256 encryption</span>
+        </span>
+        <p class="help-line">
+          Trouble signing in?
+          <a class="help-link">Contact Society Manager</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</ion-content>

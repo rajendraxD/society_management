@@ -1,0 +1,65 @@
+:host {
+  display: block;
+}
+
+.bottom-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: var(--app-max-width);
+  margin: 0 auto;
+  height: calc(var(--tab-bar-height) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: #ffffff;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.04);
+
+  /* Active colour follows the portal's role accent. */
+  &--admin { --tab-active: var(--role-admin); }
+  &--resident { --tab-active: var(--role-resident); }
+  &--security { --tab-active: var(--role-security); }
+  &--committee { --tab-active: var(--role-committee); }
+}
+
+.tab-item {
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  /* 44px minimum touch target per WCAG 2.5.5 */
+  min-width: 56px;
+  min-height: 44px;
+  justify-content: center;
+  color: var(--text-sub);
+  cursor: pointer;
+  padding: 6px 12px;
+  transition: color 0.15s ease;
+
+  ion-icon {
+    font-size: 22px;
+  }
+
+  span {
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  &.active {
+    color: var(--tab-active, var(--c-info));
+
+    ion-icon {
+      color: var(--tab-active, var(--c-info));
+    }
+
+    span {
+      font-weight: 700;
+    }
+  }
+}

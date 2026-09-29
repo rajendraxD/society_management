@@ -1,0 +1,602 @@
+/* Committee-specific rules only. Layout, header, cards and text colours
+   come from the shared design system in src/global.scss. */
+
+/* ================= HOME STAT GRID ================= */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: none;
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-sm);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:active { transform: scale(0.98); }
+
+  .stat-card__label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    line-height: 1.3;
+  }
+
+  .stat-card__value {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+  }
+
+  .stat-card__action {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--role-committee);
+    margin-top: 2px;
+  }
+}
+
+/* ================= NEXT MEETING CARD ================= */
+.next-meeting-card {
+  background: var(--role-committee-gradient);
+  border-radius: var(--r-xl);
+  padding: var(--sp-4);
+  box-shadow: 0 8px 20px var(--role-committee-shadow);
+  margin-bottom: var(--sp-3);
+
+  .next-meeting__eyebrow {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .next-meeting__title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin: 4px 0 8px;
+    line-height: 1.3;
+  }
+
+  .next-meeting__line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.92);
+    margin: 0 0 4px;
+  }
+
+  .next-meeting__actions {
+    display: flex;
+    gap: 10px;
+    margin-top: var(--sp-4);
+
+    .agenda-btn {
+      background: #FFFFFF;
+      color: var(--role-committee);
+      border: none;
+      padding: 11px 20px;
+      border-radius: var(--r-pill);
+      font-size: 12px;
+      font-weight: 800;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 44px;
+
+      &:active { opacity: 0.9; }
+    }
+
+    .rsvp-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      padding: 11px 20px;
+      border-radius: var(--r-pill);
+      font-size: 12px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 44px;
+
+      &:active { background: rgba(255, 255, 255, 0.32); }
+    }
+  }
+}
+
+/* ================= JANUARY SNAPSHOT ================= */
+.snapshot-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-child { border-bottom: none; }
+
+  .snapshot-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .snapshot-value {
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+}
+
+/* ================= RECENT ACTIONS ================= */
+.action-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.action-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-child { border-bottom: none; }
+
+  ion-icon {
+    font-size: 17px;
+    color: var(--role-committee);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .action-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    .action-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+
+    .action-time {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: 500;
+    }
+  }
+}
+
+/* ================= NOC LIST ================= */
+.noc-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.noc-card {
+  background: var(--bg-card);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-sm);
+  padding: var(--sp-4);
+
+  .noc-card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--sp-3);
+
+    .noc-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 0 0 2px;
+    }
+
+    .noc-flat {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .noc-age {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--c-warning);
+      background: var(--c-warning-bg);
+      padding: 4px 10px;
+      border-radius: var(--r-pill);
+      flex-shrink: 0;
+    }
+  }
+
+  .noc-type-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--role-committee-tint);
+    color: var(--role-committee);
+    border-radius: var(--r-sm);
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    margin: var(--sp-3) 0;
+  }
+
+  .noc-card__actions {
+    display: grid;
+    grid-template-columns: 1.2fr 1.2fr 0.8fr;
+    gap: 8px;
+  }
+}
+
+.noc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 11px 6px;
+  min-height: 44px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+
+  &:active { opacity: 0.88; }
+
+  &--approve {
+    background: var(--c-success);
+    color: #FFFFFF;
+  }
+
+  &--reject {
+    background: #FFFFFF;
+    border-color: #FECACA;
+    color: var(--c-danger);
+  }
+
+  &--view {
+    background: var(--bg-page);
+    color: var(--text-body);
+  }
+}
+
+.noc-types-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.noc-type-chip {
+  background: var(--role-committee-tint);
+  color: var(--role-committee);
+  border-radius: var(--r-sm);
+  padding: 11px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ================= MEETINGS ================= */
+.meeting-hero {
+  background: var(--role-committee-gradient);
+  border-radius: var(--r-xl);
+  padding: var(--sp-5) var(--sp-4);
+  box-shadow: 0 8px 20px var(--role-committee-shadow);
+
+  .meeting-hero__eyebrow {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .meeting-hero__title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin: 4px 0 2px;
+    letter-spacing: -0.4px;
+  }
+
+  .meeting-hero__subtitle {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 var(--sp-4);
+  }
+
+  .meeting-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px var(--sp-4);
+    padding-top: var(--sp-3);
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+  }
+}
+
+.agenda-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agenda-row {
+  background: var(--bg-card);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 14px var(--sp-4);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+
+  .agenda-index {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--role-committee-tint);
+    color: var(--role-committee);
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .agenda-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+    line-height: 1.4;
+  }
+}
+
+.other-meetings {
+  display: flex;
+  flex-direction: column;
+}
+
+.other-meeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-child { border-bottom: none; }
+
+  .other-meeting__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    .other-meeting__title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .other-meeting__sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+  }
+}
+
+.status-chip {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+  background: var(--role-committee-tint);
+  color: var(--role-committee);
+}
+
+/* ================= FINANCE ================= */
+.grouped-bars {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 130px;
+  padding: 0 4px 6px;
+
+  .bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+
+    .bar-pair {
+      height: 96px;
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+
+      .bar {
+        width: 11px;
+        border-radius: 4px 4px 2px 2px;
+        transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+
+        &--income { background: var(--role-committee); }
+        &--expense { background: #C4B5FD; }
+      }
+    }
+
+    .bar-group__label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+  }
+}
+
+.chart-legend {
+  display: flex;
+  gap: var(--sp-4);
+  margin-top: var(--sp-3);
+
+  .chart-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-body);
+  }
+
+  .chart-legend__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+
+    &--income { background: var(--role-committee); }
+    &--expense { background: #C4B5FD; }
+  }
+}
+
+.fund-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.fund-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-child { border-bottom: none; }
+
+  .fund-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .fund-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-body);
+    min-width: 0;
+  }
+
+  .fund-amount {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-main);
+    white-space: nowrap;
+  }
+
+  .vendor-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    .vendor-due {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: 500;
+    }
+  }
+
+  .vendor-amount {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--c-warning);
+    white-space: nowrap;
+  }
+}
+
+/* ================= NOC MODAL ================= */
+.noc-modal {
+  h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0 0 2px;
+  }
+
+  .noc-modal__box {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-md);
+    padding: 14px var(--sp-4);
+    margin-top: var(--sp-4);
+
+    .noc-modal__label {
+      display: block;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .noc-modal__reason {
+      font-size: 13px;
+      color: var(--text-body);
+      line-height: 1.5;
+      margin: 0;
+    }
+  }
+
+  .doc-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-body);
+    padding: 6px 0;
+
+    ion-icon {
+      font-size: 16px;
+      color: var(--role-committee);
+      flex-shrink: 0;
+    }
+  }
+
+  .noc-modal__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: var(--sp-5);
+  }
+}

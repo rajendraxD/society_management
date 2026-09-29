@@ -1,0 +1,464 @@
+<ion-content [fullscreen]="true">
+  <div class="app-shell">
+
+    <!-- ================= ROLE HEADER ================= -->
+    <header class="app-header app-header--admin">
+      <div class="app-header__inner">
+        <div *ngIf="activeTab === 'home'">
+          <span class="app-header__eyebrow">Good Morning 👋</span>
+          <h1 class="app-header__title">{{ adminName }}</h1>
+          <p class="app-header__subtitle">Society Admin · {{ societyName }}</p>
+        </div>
+
+        <div *ngIf="activeTab === 'modules'">
+          <h1 class="app-header__title">Modules</h1>
+          <p class="app-header__subtitle">{{ modules.length }} management modules</p>
+        </div>
+
+        <div *ngIf="activeTab === 'reports'">
+          <h1 class="app-header__title">Reports &amp; Analytics</h1>
+          <p class="app-header__subtitle">{{ kpis.currentDateText }} · {{ societyName }}</p>
+        </div>
+
+        <div *ngIf="activeTab === 'account'">
+          <h1 class="app-header__title">Account</h1>
+          <p class="app-header__subtitle">Profile &amp; society configuration</p>
+        </div>
+
+        <div class="app-header__actions">
+          <button
+            *ngIf="activeTab === 'home'"
+            class="header-icon-btn"
+            (click)="switchTab('reports')"
+            [attr.aria-label]="recentAlerts.length + ' recent alerts'"
+          >
+            <ion-icon name="notifications-outline" aria-hidden="true"></ion-icon>
+            <span class="header-icon-btn__badge" *ngIf="recentAlerts.length">{{ recentAlerts.length }}</span>
+          </button>
+
+          <button
+            *ngIf="activeTab === 'modules'"
+            class="header-pill-btn"
+            (click)="switchRole()"
+          >
+            Switch Role
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-body">
+
+      <!-- ================= TAB 1: HOME ================= -->
+      <ng-container *ngIf="activeTab === 'home'">
+
+        <div class="date-quarter-pill">
+          <span class="date-txt">{{ kpis.currentDateText }}</span>
+          <span class="quarter-tag">{{ kpis.activeQuarter }}</span>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">Today's Collection</span>
+            <div class="kpi-value text-green">{{ formatINR(kpis.todayCollection) }}</div>
+            <div class="kpi-delta text-green">↗ {{ kpis.todayCollectionChange }}</div>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Pending Bills</span>
+            <div class="kpi-value text-amber">{{ kpis.pendingBillsCount }}</div>
+            <div class="kpi-delta text-red">↘ {{ kpis.pendingBillsOverdue }} overdue</div>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Defaulters</span>
+            <div class="kpi-value text-red">{{ kpis.defaultersCount }}</div>
+            <div class="kpi-delta text-red">↘ {{ kpis.defaultersChange }}</div>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Monthly Revenue</span>
+            <div class="kpi-value text-blue">₹{{ kpis.monthlyRevenue }}</div>
+            <div class="kpi-delta text-green">↗ {{ kpis.monthlyRevenueChange }}</div>
+          </div>
+        </div>
+
+        <div class="quick-status-row">
+          <div class="status-box">
+            <div class="status-icon icon-orange">
+              <ion-icon name="chatbubble-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="status-num">{{ kpis.openComplaints }}</div>
+            <div class="status-txt">Open Complaints</div>
+          </div>
+
+          <div class="status-box">
+            <div class="status-icon icon-teal">
+              <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="status-num">{{ kpis.visitorsToday }}</div>
+            <div class="status-txt">Visitors Today</div>
+          </div>
+
+          <div class="status-box">
+            <div class="status-icon icon-indigo">
+              <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <div class="status-num">{{ kpis.staffPresent }}</div>
+            <div class="status-txt">Staff Present</div>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">Monthly Collection (₹L)</span>
+            <span class="card-link">Last 6 months</span>
+          </div>
+
+          <div class="bar-chart-visual">
+            <div class="bar-column" *ngFor="let item of monthlyCollection">
+              <div class="bar-fill-track">
+                <div
+                  class="bar-fill-primary"
+                  [style.height.%]="(item.income / maxMonthlyValue) * 100"
+                  [title]="item.month + ': ₹' + item.income + 'L income'"
+                ></div>
+              </div>
+              <span class="bar-label">{{ item.month }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">Expense Breakdown</span>
+          </div>
+
+          <div class="donut-container">
+            <div class="svg-donut-wrapper">
+              <svg viewBox="0 0 100 100" class="donut-svg" role="img" aria-label="Expense breakdown by category">
+                <circle cx="50" cy="50" r="38" fill="transparent" stroke="#E2E8F0" stroke-width="14"></circle>
+                <circle
+                  *ngFor="let seg of donutSegments"
+                  cx="50"
+                  cy="50"
+                  r="38"
+                  fill="transparent"
+                  [attr.stroke]="seg.color"
+                  stroke-width="14"
+                  [attr.stroke-dasharray]="seg.dashArray"
+                  [attr.stroke-dashoffset]="seg.dashOffset"
+                ></circle>
+              </svg>
+            </div>
+
+            <div class="donut-legend">
+              <div class="legend-row" *ngFor="let exp of expenseBreakdown">
+                <div class="legend-bullet-txt">
+                  <span class="legend-dot" [style.background]="exp.color"></span>
+                  <span class="legend-name">{{ exp.category }}</span>
+                </div>
+                <span class="legend-pct">{{ exp.percentage }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">Recent Alerts</span>
+          </div>
+
+          <div class="alerts-list" *ngIf="recentAlerts.length; else noAlerts">
+            <div class="alert-tile" *ngFor="let alt of recentAlerts" [ngClass]="alt.type">
+              <div class="alert-icon-box">
+                <ion-icon [name]="alt.icon" aria-hidden="true"></ion-icon>
+              </div>
+              <div class="alert-info">
+                <div class="alert-text">{{ alt.text }}</div>
+                <div class="alert-time">{{ alt.time }}</div>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noAlerts>
+            <div class="empty-state">
+              <ion-icon name="checkmark-done-circle-outline" aria-hidden="true"></ion-icon>
+              <p>No alerts right now. Everything is running smoothly.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">Defaulters</span>
+            <span class="card-link">{{ defaulters.length }} flats</span>
+          </div>
+
+          <div class="defaulter-list" *ngIf="defaulters.length; else noDefaulters">
+            <div class="defaulter-row" *ngFor="let d of defaulters">
+              <div class="defaulter-flat">{{ d.flatNumber }}</div>
+              <div class="defaulter-meta">
+                <span class="defaulter-name">{{ d.residentName }}</span>
+                <span class="defaulter-sub">{{ d.billingMonth }} · due {{ formatShortDate(d.dueDate) }}</span>
+              </div>
+              <div class="defaulter-amount">{{ formatINR(d.amount) }}</div>
+            </div>
+          </div>
+
+          <ng-template #noDefaulters>
+            <div class="empty-state">
+              <ion-icon name="happy-outline" aria-hidden="true"></ion-icon>
+              <p>No outstanding dues. 100% collection this cycle.</p>
+            </div>
+          </ng-template>
+        </div>
+      </ng-container>
+
+      <!-- ================= TAB 2: MODULES ================= -->
+      <ng-container *ngIf="activeTab === 'modules'">
+        <div class="modules-grid-container" *ngIf="modules.length; else noModules">
+          <button
+            class="module-card"
+            *ngFor="let mod of modules"
+            (click)="openModuleDetails(mod)"
+            [attr.aria-label]="mod.name + ' module'"
+          >
+            <div class="module-icon-wrap" [style.background]="mod.badgeColor">
+              <ion-icon [name]="mod.icon" [style.color]="mod.iconColor" aria-hidden="true"></ion-icon>
+            </div>
+            <span class="module-title">{{ mod.name }}</span>
+          </button>
+        </div>
+
+        <ng-template #noModules>
+          <div class="empty-state">
+            <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
+            <p>Modules could not be loaded.</p>
+          </div>
+        </ng-template>
+      </ng-container>
+
+      <!-- ================= TAB 3: REPORTS ================= -->
+      <ng-container *ngIf="activeTab === 'reports'">
+        <div class="reports-container" *ngIf="reports.length; else noReports">
+          <div class="report-tile-card" *ngFor="let rep of reports">
+            <div class="report-details">
+              <h3 class="rep-title">{{ rep.title }}</h3>
+              <p class="rep-subtitle">{{ rep.subtitle }}</p>
+            </div>
+            <div class="report-actions">
+              <button
+                class="rep-download-btn"
+                (click)="downloadReport(rep)"
+                [attr.aria-label]="'Download ' + rep.title"
+              >
+                <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
+              </button>
+              <button class="rep-view-btn" [style.background]="rep.statusColor" (click)="viewReport(rep)">
+                View
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noReports>
+          <div class="empty-state">
+            <ion-icon name="bar-chart-outline" aria-hidden="true"></ion-icon>
+            <p>Reports could not be loaded.</p>
+          </div>
+        </ng-template>
+      </ng-container>
+
+      <!-- ================= TAB 4: ACCOUNT ================= -->
+      <ng-container *ngIf="activeTab === 'account'">
+        <div class="profile-card">
+          <div class="avatar-bubble">
+            <ion-icon name="person" aria-hidden="true"></ion-icon>
+          </div>
+          <div class="profile-meta">
+            <h2 class="profile-name">{{ adminName }}</h2>
+            <p class="profile-role">{{ adminTitle }} · Super User</p>
+            <p class="profile-email">{{ adminEmail }}</p>
+          </div>
+        </div>
+
+        <div class="settings-list-card">
+          <button class="setting-item" (click)="openModuleDetails(accountSettings[0])">
+            <div class="item-left">
+              <div class="item-icon-wrap bg-blue-light">
+                <ion-icon name="notifications-outline" class="text-blue" aria-hidden="true"></ion-icon>
+              </div>
+              <div class="item-meta">
+                <span class="item-title">Notifications</span>
+                <span class="item-sub">Push, SMS, WhatsApp</span>
+              </div>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="item-arrow" aria-hidden="true"></ion-icon>
+          </button>
+
+          <button class="setting-item" (click)="openModuleDetails(accountSettings[1])">
+            <div class="item-left">
+              <div class="item-icon-wrap bg-blue-light">
+                <ion-icon name="shield-outline" class="text-blue" aria-hidden="true"></ion-icon>
+              </div>
+              <div class="item-meta">
+                <span class="item-title">Security &amp; 2FA</span>
+                <span class="item-sub">Biometric, PIN, OTP</span>
+              </div>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="item-arrow" aria-hidden="true"></ion-icon>
+          </button>
+
+          <button class="setting-item" (click)="openModuleDetails(accountSettings[2])">
+            <div class="item-left">
+              <div class="item-icon-wrap bg-blue-light">
+                <ion-icon name="people-outline" class="text-blue" aria-hidden="true"></ion-icon>
+              </div>
+              <div class="item-meta">
+                <span class="item-title">Manage Staff</span>
+                <span class="item-sub">22 staff members</span>
+              </div>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="item-arrow" aria-hidden="true"></ion-icon>
+          </button>
+
+          <button class="setting-item" (click)="openModuleDetails(accountSettings[3])">
+            <div class="item-left">
+              <div class="item-icon-wrap bg-blue-light">
+                <ion-icon name="business-outline" class="text-blue" aria-hidden="true"></ion-icon>
+              </div>
+              <div class="item-meta">
+                <span class="item-title">Society Settings</span>
+                <span class="item-sub">Building configuration</span>
+              </div>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="item-arrow" aria-hidden="true"></ion-icon>
+          </button>
+
+          <button class="setting-item" (click)="openModuleDetails(accountSettings[4])">
+            <div class="item-left">
+              <div class="item-icon-wrap bg-blue-light">
+                <ion-icon name="document-text-outline" class="text-blue" aria-hidden="true"></ion-icon>
+              </div>
+              <div class="item-meta">
+                <span class="item-title">Billing Config</span>
+                <span class="item-sub">GST, interest rates</span>
+              </div>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="item-arrow" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+
+        <div class="action-buttons-group">
+          <button class="switch-role-btn" (click)="switchRole()">
+            <ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon>
+            <span>Switch Role</span>
+          </button>
+
+          <button class="sign-out-btn" (click)="signOut()">
+            <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </ng-container>
+
+    </div>
+
+    <app-bottom-tabs
+      [tabs]="tabs"
+      [activeTab]="activeTab"
+      role="admin"
+      (tabChange)="switchTab($event)"
+    ></app-bottom-tabs>
+  </div>
+
+  <!-- MODULE DETAILS MODAL -->
+  <ion-modal [isOpen]="isModuleModalOpen" (didDismiss)="closeModuleModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>{{ selectedModule?.name }} Management</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModuleModal()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="modal-dialog-body text-center">
+          <div class="modal-icon-wrap" [style.background]="selectedModule?.badgeColor">
+            <ion-icon [name]="selectedModule?.icon" [style.color]="selectedModule?.iconColor"></ion-icon>
+          </div>
+          <h2>{{ selectedModule?.name }} Module</h2>
+          <p class="modal-sub">
+            Real-time management records for {{ societyName }} CHS. You can manage records,
+            export audit logs, and trigger member alerts.
+          </p>
+
+          <div class="modal-info-box">
+            <div class="modal-row">
+              <span class="modal-k">Status:</span>
+              <span class="modal-v text-green font-bold">Active &amp; Synchronized</span>
+            </div>
+            <div class="modal-row">
+              <span class="modal-k">Connected Wing:</span>
+              <span class="modal-v">Wings A, B, C &amp; D (120 Units)</span>
+            </div>
+            <div class="modal-row">
+              <span class="modal-k">Last Sync:</span>
+              <span class="modal-v">Just now</span>
+            </div>
+          </div>
+
+          <ion-button expand="block" shape="round" color="primary" (click)="closeModuleModal()">
+            Done
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- REPORT VIEW MODAL -->
+  <ion-modal [isOpen]="isReportModalOpen" (didDismiss)="closeReportModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>{{ selectedReport?.title }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeReportModal()">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="report-modal-content" *ngIf="selectedReport">
+          <div class="report-badge-top" [style.background]="selectedReport.statusColor">
+            {{ selectedReport.tag }} Audit Summary
+          </div>
+          <h2>{{ selectedReport.title }}</h2>
+          <p class="text-muted">{{ selectedReport.subtitle }} · Period: January 2025</p>
+
+          <div class="report-data-card">
+            <h4>Summary Details</h4>
+            <div class="modal-row">
+              <span>Auditor / Issuer:</span>
+              <strong>M/s R.K. Associates, Chartered Accountants</strong>
+            </div>
+            <div class="modal-row">
+              <span>Society Reg:</span>
+              <strong>MUM/MH/HSG/2018/4921</strong>
+            </div>
+            <div class="modal-row">
+              <span>Financial Status:</span>
+              <strong class="text-green">Reconciled 100%</strong>
+            </div>
+          </div>
+
+          <ion-button expand="block" shape="round" color="success" (click)="downloadReport(selectedReport)">
+            <ion-icon name="download-outline" slot="start"></ion-icon>
+            Download Certified PDF
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

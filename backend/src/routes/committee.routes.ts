@@ -1,0 +1,22 @@
+import { Router } from "express";
+import { CommitteeController } from "../controllers/committee.controller.js";
+import { validate } from "../middleware/validate.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
+import {
+  nocIdParamSchema,
+  updateNOCSchema,
+} from "../validations/society.validations.js";
+
+const router = Router();
+
+router.use(requireAuth, requireRole("committee"));
+
+router.get("/dashboard", CommitteeController.getDashboard);
+router.post(
+  "/noc/:id/status",
+  validate(nocIdParamSchema, "params"),
+  validate(updateNOCSchema),
+  CommitteeController.updateNOC
+);
+
+export default router;
