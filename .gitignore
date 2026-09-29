@@ -25,7 +25,7 @@ log.txt
 
 # Compiled output
 # /dist
-frontend/dist/
+frontend/dist
 /tmp
 /out-tsc
 /bazel-out

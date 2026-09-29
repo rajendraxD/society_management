@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const resident_controller_js_1 = require("../controllers/resident.controller.js");
+const validate_js_1 = require("../middleware/validate.js");
+const auth_js_1 = require("../middleware/auth.js");
+const society_validations_js_1 = require("../validations/society.validations.js");
+const router = (0, express_1.Router)();
+router.use(auth_js_1.requireAuth, (0, auth_js_1.requireRole)("resident"));
+router.get("/dashboard", resident_controller_js_1.ResidentController.getDashboard);
+router.get("/bills", resident_controller_js_1.ResidentController.getBills);
+router.post("/pay-bill", (0, validate_js_1.validate)(society_validations_js_1.payBillSchema), resident_controller_js_1.ResidentController.payBill);
+router.post("/pre-approve-visitor", (0, validate_js_1.validate)(society_validations_js_1.preApproveVisitorSchema), resident_controller_js_1.ResidentController.preApproveVisitor);
+exports.default = router;

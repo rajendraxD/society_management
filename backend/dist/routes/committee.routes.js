@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const committee_controller_js_1 = require("../controllers/committee.controller.js");
+const validate_js_1 = require("../middleware/validate.js");
+const auth_js_1 = require("../middleware/auth.js");
+const society_validations_js_1 = require("../validations/society.validations.js");
+const router = (0, express_1.Router)();
+router.use(auth_js_1.requireAuth, (0, auth_js_1.requireRole)("committee"));
+router.get("/dashboard", committee_controller_js_1.CommitteeController.getDashboard);
+router.post("/noc/:id/status", (0, validate_js_1.validate)(society_validations_js_1.nocIdParamSchema, "params"), (0, validate_js_1.validate)(society_validations_js_1.updateNOCSchema), committee_controller_js_1.CommitteeController.updateNOC);
+exports.default = router;
