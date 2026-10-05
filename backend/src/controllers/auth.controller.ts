@@ -151,6 +151,12 @@ export const AuthController = {
     });
   }),
 
+  /**
+   * Role metadata for the role-select screen. Unauthenticated by necessity —
+   * nobody has signed in yet — so it returns role labels only. User records
+   * (name, email, phone, Aadhaar digits) must never be added here: this route
+   * has no auth and is therefore public.
+   */
   getRoles: asyncHandler(async (_req: Request, res: Response) => {
     const users = await Store.getUsers();
 
@@ -163,7 +169,6 @@ export const AuthController = {
           name: u.title,
           badgeLine: u.badgeLine,
         })),
-        users,
       },
     });
   }),

@@ -10,7 +10,7 @@ The **Society Management Platform** is a full-stack, enterprise-grade apartment 
 
 - **Frontend**: Ionic Framework 9, Angular 22, Capacitor 8, SCSS, NgModules, Ionicons
 - **Backend**: Express.js 4, Node.js (TypeScript ESM), Mongoose 8 (MongoDB)
-- **Security**: AES/BCrypt password hashing, JWT stateless access tokens (in-memory) + httpOnly refresh tokens, Helmet security headers, CORS origin allow-list, rate limiting, and Zod schema validations.
+- **Security**: bcrypt password hashing, JWT stateless access tokens (in-memory) + httpOnly refresh tokens, Helmet security headers, CORS origin allow-list, rate limiting, and Zod schema validations.
 - **Mobile**: Capacitor Android native bridge with cleartext HTTP debug overlay for local development and HTTPS release builds.
 
 ---
@@ -121,8 +121,59 @@ cd frontend/android
 
 ## 7. Quality & Verification Standards
 
-- **Backend Type-Safety**: 100% TypeScript ESM compiled via `tsc` without errors.
+All items below were **re-verified by running them** on the delivery machine.
+
+- **Backend Type-Safety**: `npx tsc --noEmit` compiles clean (0 errors).
 - **Frontend Code Quality**: `npm run lint` passes with 0 errors and 0 warnings.
-- **Automated Tests**: Unit test suite passes cleanly via Vitest (`npm test`).
+- **Production Build**: `npm run build` succeeds; output to `frontend/www`.
+- **Automated Tests**: `npm test` (Vitest) passes — 2 files, 2 tests. Coverage is
+  intentionally minimal; it is a smoke check, not a regression suite.
+- **API Regression Suite**: a 55-assertion end-to-end sweep against the running
+  server (auth, refresh rotation, logout revocation, role isolation across all four
+  portals, validation rejection, and real write paths) passes with 0 failures.
+  See §8.
 - **Database Seeding**: Clean idempotent seed runner (`npm run seed`).
-- **Browser & Mobile Verified**: Tested and confirmed functioning on Chrome DevTools.
+- **Browser Verified**: All four portals (Admin, Resident, Security, Committee) were
+  driven end-to-end in Chrome — sign-in, dashboard load, NOC approval, and visitor
+  gate log — with no console errors and no failed API calls.
+
+### Known limitations to disclose at handover
+
+1. **Dashboard analytics are demo data, not computed from MongoDB.** Financial KPIs,
+   charts, alerts, modules and reports come from the static constants in
+   `backend/src/seed/seedData.ts`. Only bills, visitors, NOCs, notices, meetings and
+   users are real database reads/writes. Treat the figures as sample data.
+2. **`GET /api/auth/roles` is unauthenticated** — it backs the pre-login role-picker
+   screen, so it cannot require a session. It now returns role metadata only
+   (id, label, badge line); the user records it previously exposed, including phone
+   numbers and Aadhaar last-four digits, were removed. Any future field added here is
+   public by definition. If the role-picker is ever replaced by a static list, delete
+   this route rather than adding auth to it.
+3. **No automated backend test suite** in CI. The §8 script is the current safety net.
+4. **Reported dashboard dates are hardcoded** to "Jan 31, 2025" in the controllers
+   rather than derived from the current date.
+
+---
+
+## 8. Verification Commands (reproduce everything in §7)
+
+```bash
+# Backend
+cd backend
+npm install && npm run seed
+npx tsc --noEmit            # 0 errors
+npx tsx src/server.ts       # http://localhost:5000
+npm run e2e                 # 55 assertions against :5000, must print 0 failed
+
+# Frontend (second terminal)
+cd frontend
+npm install
+npm run lint                # 0 errors, 0 warnings
+npm test                    # 2 passed
+npm run build               # -> frontend/www
+npm start                   # http://localhost:8100
+```
+
+The login endpoint is rate-limited to 10 failed attempts per 15 minutes. If you run
+the E2E sweep repeatedly in one session, restart the API to reset the counter, and
+re-run `npm run seed` first for a clean data state.

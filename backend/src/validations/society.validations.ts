@@ -4,6 +4,12 @@ import { VISITOR_TYPES } from "../models/Visitor.js";
 const phoneRegex = /^\+?[0-9\s-]{10,15}$/;
 /** Society flat numbers look like "A-404" / "C-1102". */
 const flatRegex = /^[A-Z]-\d{1,4}$/i;
+/** A 24-char hex string. Rejecting these at the edge keeps Mongoose CastErrors
+ *  (which would otherwise surface as a 500) out of every `:id` route. */
+const mongoId = z
+  .string()
+  .trim()
+  .regex(/^[a-f\d]{24}$/i, "Invalid id");
 
 export const loginSchema = z.object({
   email: z
@@ -51,9 +57,9 @@ export const updateNOCSchema = z.object({
 });
 
 export const nocIdParamSchema = z.object({
-  id: z.string().trim().min(1, "NOC id is required"),
+  id: mongoId,
 });
 
 export const visitorIdParamSchema = z.object({
-  visitorId: z.string().trim().min(1, "Visitor id is required"),
+  visitorId: mongoId,
 });

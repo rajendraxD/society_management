@@ -66,6 +66,33 @@ function withIds<T extends { _id?: unknown }>(docs: T[]): (T & { id: string })[]
   return docs.map(withId);
 }
 
+/**
+ * Opens a gate-log row for a visitor who just entered. The log is what the
+ * guard actually reads on screen, so a check-in that never lands here is a
+ * visitor the guard cannot see. Keyed on the id the client receives, so the
+ * matching check-out finds the same row.
+ */
+function addGateLogEntry(visitor: VisitorItem) {
+  memGateLog.unshift({
+    id: visitor.id,
+    name: visitor.name,
+    visitorType: visitor.visitorType,
+    destinationFlat: visitor.destinationFlat,
+    inTime: visitor.inTime,
+    outTime: null,
+  });
+}
+
+/**
+ * Records the exit time on the gate-log row opened by a check-in. The log is the
+ * guard's on-screen history, so leaving it unstamped would show a departed
+ * visitor as still inside forever.
+ */
+function stampGateLog(visitorId: string, outTime: Date) {
+  const entry = memGateLog.find((l) => l.id === visitorId);
+  if (entry) entry.outTime = outTime;
+}
+
 export const Store = {
   /* ---------------- Admin & Society ---------------- */
 
@@ -319,9 +346,12 @@ export const Store = {
         purpose: visitor.purpose,
       });
 
-      return withId(created.toObject()) as unknown as VisitorItem;
+      const saved = withId(created.toObject()) as unknown as VisitorItem;
+      addGateLogEntry(saved);
+      return saved;
     }
 
+    addGateLogEntry(visitor);
     return visitor;
   },
 
@@ -338,6 +368,8 @@ export const Store = {
       visitor.outTime = new Date();
       await visitor.save();
 
+      stampGateLog(visitorId, visitor.outTime);
+
       return {
         success: true,
         message: "Visitor marked exited",
@@ -352,6 +384,7 @@ export const Store = {
 
     visitor.status = "Exited";
     visitor.outTime = new Date();
+    stampGateLog(visitorId, visitor.outTime);
 
     return { success: true, message: "Visitor marked exited", visitor };
   },
