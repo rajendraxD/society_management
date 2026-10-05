@@ -231,6 +231,39 @@ export interface RecentActionItem {
   time: string;
 }
 
+export type ComplaintCategory =
+  | "Plumbing"
+  | "Electrical"
+  | "Lift"
+  | "Security"
+  | "Cleanliness"
+  | "Parking"
+  | "Other";
+
+export type ComplaintStatus = "Open" | "In Progress" | "Resolved";
+
+export type ComplaintPriority = "Low" | "Medium" | "High" | "Emergency";
+
+export interface ComplaintItem {
+  id: string;
+  title: string;
+  category: ComplaintCategory;
+  flatNumber: string;
+  residentName: string;
+  description: string;
+  status: ComplaintStatus;
+  priority: ComplaintPriority;
+  assignedTo?: string;
+  raisedAt: string | Date;
+  resolvedAt?: string | Date;
+}
+
+export interface ComplaintSummary {
+  open: number;
+  inProgress: number;
+  resolved: number;
+}
+
 export interface FamilyMember {
   name: string;
   relation: string;

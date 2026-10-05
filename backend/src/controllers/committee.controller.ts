@@ -3,7 +3,7 @@ import { Store } from "../services/store.js";
 import { asyncHandler, ApiError } from "../middleware/errorHandler.js";
 
 export const CommitteeController = {
-  getDashboard: asyncHandler(async (_req: Request, res: Response) => {
+  getDashboard: asyncHandler(async (req: Request, res: Response) => {
     const [
       pendingNOCs,
       stats,
@@ -25,8 +25,14 @@ export const CommitteeController = {
       Store.getVendorPayments(),
       Store.getNOCTypes(),
       Store.getMonthlyCollectionChart(),
-      Store.getUserByRole("committee"),
+      // The signed-in member, not "anybody with the committee role" — the
+      // dashboard is signed with the member's name and designation.
+      Store.getUserById(req.user!.id),
     ]);
+
+    if (!user) {
+      throw new ApiError(404, "Committee member profile not found");
+    }
 
     res.json({
       success: true,

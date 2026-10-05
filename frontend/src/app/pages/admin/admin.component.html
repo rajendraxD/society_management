@@ -380,7 +380,58 @@
         </ion-toolbar>
       </ion-header>
       <ion-content class="ion-padding">
-        <div class="modal-dialog-body text-center">
+        <!-- Complaints: real records, not the placeholder sheet. -->
+        <div class="report-modal-content" *ngIf="selectedModule?.id === 'complaints'">
+          <div class="modal-summary-row">
+            <div class="modal-summary-cell">
+              <span class="modal-summary-num text-red">{{ complaintSummary.open }}</span>
+              <span class="modal-summary-label">Open</span>
+            </div>
+            <div class="modal-summary-cell">
+              <span class="modal-summary-num text-amber">{{ complaintSummary.inProgress }}</span>
+              <span class="modal-summary-label">In Progress</span>
+            </div>
+            <div class="modal-summary-cell">
+              <span class="modal-summary-num text-green">{{ complaintSummary.resolved }}</span>
+              <span class="modal-summary-label">Resolved</span>
+            </div>
+          </div>
+
+          <div class="empty-state" *ngIf="!complaints.length">
+            <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+            <p>No complaints raised in the society.</p>
+          </div>
+
+          <div class="complaint-row" *ngFor="let complaint of complaints">
+            <div class="complaint-row__top">
+              <div class="complaint-row__meta">
+                <h3>{{ complaint.title }}</h3>
+                <p>Flat {{ complaint.flatNumber }} · {{ complaint.residentName }} · {{ complaint.category }}</p>
+              </div>
+              <span class="status-chip" [ngClass]="'status-chip--' + complaintTone(complaint.status)">
+                {{ complaint.status }}
+              </span>
+            </div>
+            <p class="complaint-row__body">{{ complaint.description }}</p>
+            <div class="complaint-row__foot">
+              <span class="status-chip" [ngClass]="'status-chip--' + complaintPriorityTone(complaint.priority)">
+                {{ complaint.priority }}
+              </span>
+              <span class="complaint-row__text">
+                {{ complaint.assignedTo || "Unassigned" }}
+              </span>
+              <ion-button
+                size="small"
+                fill="outline"
+                (click)="advanceComplaint(complaint)"
+              >
+                {{ nextComplaintAction(complaint.status) }}
+              </ion-button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-dialog-body text-center" *ngIf="selectedModule?.id !== 'complaints'">
           <div class="modal-icon-wrap" [style.background]="selectedModule?.badgeColor">
             <ion-icon [name]="selectedModule?.icon" [style.color]="selectedModule?.iconColor"></ion-icon>
           </div>

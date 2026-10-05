@@ -2,12 +2,14 @@
   "name": "society-management-backend",
   "version": "1.0.0",
   "description": "Express.js + MongoDB backend for Society Management App",
+  "type": "module",
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
     "seed": "tsx src/seed/seed.ts",
+    "test": "npm run build && node --test \"dist/tests/*.test.js\"",
     "e2e": "node scripts/e2e.mjs"
   },
   "dependencies": {

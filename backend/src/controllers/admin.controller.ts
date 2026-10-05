@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Store } from "../services/store.js";
-import { asyncHandler } from "../middleware/errorHandler.js";
+import { asyncHandler, ApiError } from "../middleware/errorHandler.js";
 
 export const AdminController = {
   getDashboardData: asyncHandler(async (_req: Request, res: Response) => {
@@ -21,13 +21,45 @@ export const AdminController = {
     });
   }),
 
+  /** Every complaint in the society, newest first. */
+  getComplaints: asyncHandler(async (_req: Request, res: Response) => {
+    const complaints = await Store.getComplaints();
+
+    res.json({
+      success: true,
+      message: "Complaints fetched successfully",
+      data: {
+        complaints,
+        summary: {
+          open: complaints.filter((c) => c.status === "Open").length,
+          inProgress: complaints.filter((c) => c.status === "In Progress").length,
+          resolved: complaints.filter((c) => c.status === "Resolved").length,
+        },
+      },
+    });
+  }),
+
+  updateComplaintStatus: asyncHandler(async (req: Request, res: Response) => {
+    const { status, assignedTo } = req.body;
+    const result = await Store.updateComplaintStatus(String(req.params.id), status, assignedTo);
+
+    if (!result.success) {
+      throw new ApiError(404, result.message);
+    }
+
+    res.json({
+      success: true,
+      message: result.message,
+      data: { complaint: result.complaint },
+    });
+  }),
+
   getModules: asyncHandler(async (_req: Request, res: Response) => {
     const modules = await Store.getModules();
     res.json({
       success: true,
       message: "Modules fetched successfully",
-      count: modules.length,
-      modules,
+      data: { modules },
     });
   }),
 
@@ -36,8 +68,7 @@ export const AdminController = {
     res.json({
       success: true,
       message: "Reports fetched successfully",
-      count: reports.length,
-      reports,
+      data: { reports },
     });
   }),
 };

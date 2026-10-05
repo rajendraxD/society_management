@@ -1,6 +1,10 @@
 // E2E sweep against the running API. Asserts happy paths, role isolation,
 // validation, and refresh-token rotation. Exit code 1 on any failure.
-const BASE = "http://localhost:5000/api";
+//
+//   npm run e2e                 # against http://localhost:5000
+//   PORT=8080 npm run e2e       # against a server on another port
+const PORT = process.env.PORT || 5000;
+const BASE = process.env.API_BASE || `http://127.0.0.1:${PORT}/api`;
 const PW = "Society@123";
 let pass = 0;
 const fails = [];
@@ -151,6 +155,15 @@ const paid = await call("/resident/pay-bill", { method: "POST", token: resident.
 ok("POST /resident/pay-bill -> 200", paid.status === 200, `${paid.status} ${paid.body?.message}`);
 if (paid.status !== 200) console.log(`       (info) pay-bill said: ${paid.body?.message}`);
 
+// Regression: pay-bill used to honour the flat in the request body, so a
+// tampered request could settle a different flat's dues. The caller's own flat
+// comes from the signed token and the body value is ignored.
+const paidOther = await call("/resident/pay-bill", { method: "POST", token: resident.token, body: { flatNumber: "A-301", transactionRef: "E2E-CROSS-FLAT" } });
+const crossBillFlat = paidOther.body?.data?.bill?.flatNumber;
+ok("pay-bill ignores a foreign flat in the body",
+  paidOther.status !== 200 || crossBillFlat === "A-404",
+  `${paidOther.status} settled ${crossBillFlat}`);
+
 const ci = await call("/security/check-in", { method: "POST", token: security.token,
   body: { name: "E2E Tester", phone: "+91 98765 43211", visitorType: "Guest", destinationFlat: "A-404", purpose: "e2e" } });
 ok("POST /security/check-in -> 201", ci.status === 201, `${ci.status} ${ci.body?.message}`);
@@ -174,6 +187,55 @@ if (nocId) {
 } else {
   ok("NOC approve (no pending NOC to approve)", true);
 }
+
+console.log("\n[8b] COMPLAINTS");
+const cmpBad = await call("/resident/complaints", { method: "POST", token: resident.token, body: { title: "ab", description: "too short" } });
+ok("complaint with short title/description -> 400", cmpBad.status === 400, cmpBad.status);
+
+const cmpNew = await call("/resident/complaints", { method: "POST", token: resident.token,
+  body: { title: "E2E lift noise", category: "Lift", description: "Lift hums loudly between the 2nd and 3rd floor.", priority: "High" } });
+ok("POST /resident/complaints -> 201", cmpNew.status === 201, `${cmpNew.status} ${cmpNew.body?.message}`);
+const newCmp = cmpNew.body?.data?.complaint;
+ok("new complaint is filed against the caller's flat", newCmp?.flatNumber === "A-404", newCmp?.flatNumber);
+ok("new complaint starts Open", newCmp?.status === "Open", newCmp?.status);
+
+const cmpList = await call("/resident/complaints", { token: resident.token });
+ok("GET /resident/complaints -> 200", cmpList.status === 200, cmpList.status);
+const cmpArr = cmpList.body?.data?.complaints ?? [];
+ok("resident complaint list is non-empty", Array.isArray(cmpArr) && cmpArr.length > 0, JSON.stringify(cmpList.body?.data).slice(0, 160));
+ok("resident sees only their own flat's complaints",
+  Array.isArray(cmpArr) && cmpArr.every((c) => c.flatNumber === "A-404"),
+  JSON.stringify(cmpArr.map((c) => c.flatNumber)));
+
+const cmpCross = await call("/resident/complaints", { token: admin.token });
+ok("resident complaints route rejects an admin token -> 403", cmpCross.status === 403, cmpCross.status);
+
+const cmpAll = await call("/admin/complaints", { token: admin.token });
+ok("GET /admin/complaints -> 200", cmpAll.status === 200, cmpAll.status);
+ok("admin summary counts complaints",
+  typeof cmpAll.body?.data?.summary?.open === "number",
+  JSON.stringify(cmpAll.body?.data?.summary));
+
+if (newCmp?.id) {
+  const cmpStart = await call(`/admin/complaints/${newCmp.id}/status`, { method: "POST", token: admin.token, body: { status: "In Progress" } });
+  ok("POST /admin/complaints/:id/status -> 200", cmpStart.status === 200, `${cmpStart.status} ${cmpStart.body?.message}`);
+  ok("status change persisted", cmpStart.body?.data?.complaint?.status === "In Progress", cmpStart.body?.data?.complaint?.status);
+
+  const cmpResolve = await call(`/admin/complaints/${newCmp.id}/status`, { method: "POST", token: admin.token, body: { status: "Resolved" } });
+  ok("resolving stamps resolvedAt", !!cmpResolve.body?.data?.complaint?.resolvedAt, JSON.stringify(cmpResolve.body?.data?.complaint?.resolvedAt));
+}
+
+const cmpBadId = await call("/admin/complaints/not-an-id/status", { method: "POST", token: admin.token, body: { status: "Resolved" } });
+ok("complaint malformed id -> 400", cmpBadId.status === 400, cmpBadId.status);
+const cmpBadStatus = await call("/admin/complaints/cmp-1/status", { method: "POST", token: admin.token, body: { status: "banana" } });
+ok("complaint invalid status -> 400", cmpBadStatus.status === 400, cmpBadStatus.status);
+
+console.log("\n[8c] FLAT SCOPING");
+const scoped = await call("/resident/dashboard", { token: resident.token });
+ok("resident dashboard flat comes from the token", scoped.body?.data?.flatNumber === "A-404", scoped.body?.data?.flatNumber);
+ok("resident family members are flat-scoped",
+  Array.isArray(scoped.body?.data?.familyMembers) && scoped.body.data.familyMembers.length === 3,
+  JSON.stringify(scoped.body?.data?.familyMembers)?.slice(0, 120));
 
 const rAfter = await call("/resident/dashboard", { token: resident.token });
 const duesAfter = JSON.stringify(rAfter.body?.data?.currentBill);

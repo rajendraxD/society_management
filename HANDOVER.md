@@ -125,14 +125,23 @@ All items below were **re-verified by running them** on the delivery machine.
 
 - **Backend Type-Safety**: `npx tsc --noEmit` compiles clean (0 errors).
 - **Frontend Code Quality**: `npm run lint` passes with 0 errors and 0 warnings.
+- **Frontend Template Type-Checking**: the Angular compiler runs with
+  `strictTemplates`, so every binding in every template is type-checked at build.
 - **Production Build**: `npm run build` succeeds; output to `frontend/www`.
-- **Automated Tests**: `npm test` (Vitest) passes — 2 files, 2 tests. Coverage is
-  intentionally minimal; it is a smoke check, not a regression suite.
-- **API Regression Suite**: a 55-assertion end-to-end sweep against the running
-  server (auth, refresh rotation, logout revocation, role isolation across all four
-  portals, validation rejection, and real write paths) passes with 0 failures.
-  See §8.
-- **Database Seeding**: Clean idempotent seed runner (`npm run seed`).
+- **Backend Automated Tests**: `npm test` runs `node --test` over an in-process
+  instance of the real Express app — 30 tests, 0 failures, **no MongoDB and no
+  running server required**. Covers auth (all four roles, refresh rotation, logout
+  revocation, cookie flags, account-enumeration resistance), role isolation across
+  all four portals, resident flat scoping, the complaint lifecycle, visitor
+  check-in/check-out with gate-log writes, and validation rejection.
+- **API Regression Suite**: a 73-assertion end-to-end sweep against a running server
+  (`npm run e2e`) passes with 0 failures — auth, refresh rotation, logout revocation,
+  role isolation, validation rejection, real write paths, complaints, and flat
+  scoping. See §8.
+- **Frontend Unit Tests**: `npm test` (Vitest) passes — 2 files, 2 tests. Still only
+  a smoke check on the Angular side; the real coverage is the backend suite above.
+- **Database Seeding**: Clean idempotent seed runner (`npm run seed`), now including
+  the `complaints` collection.
 - **Browser Verified**: All four portals (Admin, Resident, Security, Committee) were
   driven end-to-end in Chrome — sign-in, dashboard load, NOC approval, and visitor
   gate log — with no console errors and no failed API calls.
@@ -141,17 +150,28 @@ All items below were **re-verified by running them** on the delivery machine.
 
 1. **Dashboard analytics are demo data, not computed from MongoDB.** Financial KPIs,
    charts, alerts, modules and reports come from the static constants in
-   `backend/src/seed/seedData.ts`. Only bills, visitors, NOCs, notices, meetings and
-   users are real database reads/writes. Treat the figures as sample data.
+   `backend/src/seed/seedData.ts`. Only bills, visitors, NOCs, complaints, notices,
+   meetings and users are real database reads/writes. Treat the figures as sample
+   data. The dates shown on the Admin and Security dashboards *are* live (derived
+   from the current date), as is the financial quarter label.
 2. **`GET /api/auth/roles` is unauthenticated** — it backs the pre-login role-picker
    screen, so it cannot require a session. It now returns role metadata only
    (id, label, badge line); the user records it previously exposed, including phone
    numbers and Aadhaar last-four digits, were removed. Any future field added here is
    public by definition. If the role-picker is ever replaced by a static list, delete
    this route rather than adding auth to it.
-3. **No automated backend test suite** in CI. The §8 script is the current safety net.
-4. **Reported dashboard dates are hardcoded** to "Jan 31, 2025" in the controllers
-   rather than derived from the current date.
+3. **No CI pipeline is wired up.** Both suites run in one command from a clean
+   checkout (`npm test` in `backend/`); hooking them to a runner is the obvious next
+   step.
+4. **`/admin/modules` and `/admin/reports` are a catalogue, not a feature set.** All
+   19 modules open a placeholder sheet. Complaints is the exception — it is wired
+   end-to-end (resident raises, admin triages, status transitions).
+5. **Family members and vehicles are seeded constants**, keyed on flat so they cannot
+   leak between households, but there is no UI to edit them.
+6. **Without MongoDB, sign-in verifies against a demo bcrypt hash** computed at
+   runtime from the seeded demo password. That fallback exists so the app and its
+   tests boot without a database; it is not a substitute for real accounts, and the
+   server still refuses to start in production without MongoDB.
 
 ---
 
@@ -162,8 +182,10 @@ All items below were **re-verified by running them** on the delivery machine.
 cd backend
 npm install && npm run seed
 npx tsc --noEmit            # 0 errors
+npm test                    # 30 passed (in-process, no server/MongoDB needed)
 npx tsx src/server.ts       # http://localhost:5000
-npm run e2e                 # 55 assertions against :5000, must print 0 failed
+npm run e2e                 # 73 assertions against :5000, must print 0 failed
+# PORT=8080 npm run e2e     # retarget a server on another port
 
 # Frontend (second terminal)
 cd frontend
@@ -176,4 +198,5 @@ npm start                   # http://localhost:8100
 
 The login endpoint is rate-limited to 10 failed attempts per 15 minutes. If you run
 the E2E sweep repeatedly in one session, restart the API to reset the counter, and
-re-run `npm run seed` first for a clean data state.
+re-run `npm run seed` first for a clean data state. `npm test` is unaffected — it
+mounts the app on an ephemeral port inside the test process.

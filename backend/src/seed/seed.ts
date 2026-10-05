@@ -16,10 +16,12 @@ import { Visitor } from "../models/Visitor.js";
 import { NOC } from "../models/NOC.js";
 import { Notice } from "../models/Notice.js";
 import { Meeting } from "../models/Meeting.js";
+import { Complaint } from "../models/Complaint.js";
 import { hashPassword } from "../utils/password.js";
 import {
   DEMO_PASSWORD,
   INITIAL_BILLS,
+  INITIAL_COMPLAINTS,
   INITIAL_MEETINGS,
   INITIAL_NOCS,
   INITIAL_NOTICES,
@@ -66,6 +68,7 @@ async function seed() {
     NOC.syncIndexes(),
     Notice.syncIndexes(),
     Meeting.syncIndexes(),
+    Complaint.syncIndexes(),
   ]);
 
   const writes: [string, Promise<unknown>][] = [
@@ -95,6 +98,12 @@ async function seed() {
       "meetings",
       Meeting.deleteMany({}).then(() =>
         Meeting.insertMany(strip(INITIAL_MEETINGS, ["id"]))
+      ),
+    ],
+    [
+      "complaints",
+      Complaint.deleteMany({}).then(() =>
+        Complaint.insertMany(strip(INITIAL_COMPLAINTS, ["id"]))
       ),
     ],
   ];

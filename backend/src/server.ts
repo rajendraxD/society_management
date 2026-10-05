@@ -4,6 +4,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { connectDB, isDbConnected } from "./config/db.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
@@ -15,7 +16,6 @@ import committeeRoutes from "./routes/committee.routes.js";
 
 dotenv.config();
 
-const app = express();
 const PORT = process.env.PORT || 5000;
 const isProd = process.env.NODE_ENV === "production";
 
@@ -33,6 +33,16 @@ const allowedOrigins = (
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+/**
+ * Builds the Express app without binding a port.
+ *
+ * Exported so the test suite can mount it in-process and hit it over an
+ * ephemeral port — importing this module for its side effect alone would
+ * start a listener that never closes and hang `node --test`.
+ */
+export function createApp() {
+const app = express();
 
 // Middleware
 app.use(helmet());
@@ -71,6 +81,9 @@ app.use("/api/committee", committeeRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
+return app;
+}
+
 async function startServer() {
   const connected = await connectDB();
 
@@ -89,6 +102,7 @@ async function startServer() {
     );
   }
 
+  const app = createApp();
   app.listen(PORT, () => {
     console.log(
       `[Society Management Backend] Server running at http://localhost:${PORT}`
@@ -96,4 +110,13 @@ async function startServer() {
   });
 }
 
-startServer();
+// Only when run directly (`npm run dev` / `npm start`). Under `node --test`
+// this module is imported for `createApp` and the suite brings its own server.
+const invokedDirectly =
+  process.argv[1] &&
+  pathToFileURL(process.argv[1]).href ===
+    pathToFileURL(fileURLToPath(import.meta.url)).href;
+
+if (invokedDirectly) {
+  startServer();
+}

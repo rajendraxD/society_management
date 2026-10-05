@@ -8,6 +8,8 @@ import { formatINR, formatShortDate } from "../../core/utils/format.utils";
 import {
   AdminKPIs,
   AlertItem,
+  ComplaintItem,
+  ComplaintSummary,
   DefaulterItem,
   ExpenseItem,
   ManagementModule,
@@ -81,6 +83,10 @@ export class AdminComponent implements OnInit {
   selectedReport: ReportItem | null = null;
   isReportModalOpen = false;
   isModuleModalOpen = false;
+
+  /** Complaints module state. */
+  complaints: ComplaintItem[] = [];
+  complaintSummary: ComplaintSummary = { open: 0, inProgress: 0, resolved: 0 };
 
   /** Highest bar value, used to scale the chart to a 0-100% height. */
   get maxMonthlyValue(): number {
@@ -165,11 +171,62 @@ export class AdminComponent implements OnInit {
   openModuleDetails(mod: ManagementModule) {
     this.selectedModule = mod;
     this.isModuleModalOpen = true;
+
+    // Complaints is the one module backed by real records, so it opens the
+    // actual list instead of the generic placeholder sheet.
+    if (mod.id === "complaints") {
+      this.loadComplaints();
+    }
   }
 
   closeModuleModal() {
     this.isModuleModalOpen = false;
     this.selectedModule = null;
+  }
+
+  loadComplaints() {
+    this.apiService.getAllComplaints().subscribe({
+      next: (data) => {
+        this.complaints = data.complaints;
+        this.complaintSummary = data.summary;
+      },
+      error: () => this.showToast("Could not load complaints"),
+    });
+  }
+
+  advanceComplaint(complaint: ComplaintItem) {
+    // Open -> In Progress -> Resolved -> Open, so the guard keeps a simple
+    // one-tap control rather than a modal per transition.
+    const next: Record<ComplaintItem["status"], ComplaintItem["status"]> = {
+      Open: "In Progress",
+      "In Progress": "Resolved",
+      Resolved: "Open",
+    };
+
+    this.apiService.updateComplaintStatus(complaint.id, next[complaint.status]).subscribe({
+      next: () => {
+        this.showToast(`${complaint.title} → ${next[complaint.status]}`, "success");
+        this.loadComplaints();
+      },
+      error: () => this.showToast("Could not update the complaint"),
+    });
+  }
+
+  complaintTone(status: ComplaintItem["status"]): string {
+    if (status === "Resolved") return "green";
+    return status === "In Progress" ? "amber" : "red";
+  }
+
+  complaintPriorityTone(priority: ComplaintItem["priority"]): string {
+    if (priority === "Emergency" || priority === "High") return "red";
+    return priority === "Medium" ? "amber" : "green";
+  }
+
+  /** Label on the status button: what the tap will do. */
+  nextComplaintAction(status: ComplaintItem["status"]): string {
+    if (status === "Open") return "Start work";
+    if (status === "In Progress") return "Mark resolved";
+    return "Reopen";
   }
 
   viewReport(report: ReportItem) {

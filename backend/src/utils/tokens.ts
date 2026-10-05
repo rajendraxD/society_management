@@ -5,6 +5,11 @@ export interface AccessTokenPayload {
   sub: string;
   role: UserRole;
   email: string;
+  /**
+   * Flat the account belongs to. Signed, not client-supplied, so a resident
+   * portal can scope its queries to the caller's own flat.
+   */
+  flatNumber?: string;
 }
 
 export interface RefreshTokenPayload {
@@ -33,9 +38,14 @@ function secret(name: string, devFallback: string): string {
 }
 
 export function signAccessToken(payload: AccessTokenPayload): string {
-  return jwt.sign(payload, secret("JWT_ACCESS_SECRET", "dev-access-secret"), {
-    expiresIn: ACCESS_EXPIRES,
-  } as jwt.SignOptions);
+  return jwt.sign(
+    // `flatNumber: undefined` would still land in the payload as a null claim.
+    payload.flatNumber
+      ? payload
+      : { sub: payload.sub, role: payload.role, email: payload.email },
+    secret("JWT_ACCESS_SECRET", "dev-access-secret"),
+    { expiresIn: ACCESS_EXPIRES } as jwt.SignOptions
+  );
 }
 
 export function signRefreshToken(payload: RefreshTokenPayload): string {

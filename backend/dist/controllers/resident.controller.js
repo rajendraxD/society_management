@@ -1,27 +1,45 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ResidentController = void 0;
-const store_js_1 = require("../services/store.js");
-const errorHandler_js_1 = require("../middleware/errorHandler.js");
-const seedData_js_1 = require("../seed/seedData.js");
-exports.ResidentController = {
-    getDashboard: (0, errorHandler_js_1.asyncHandler)(async (_req, res) => {
-        const flatNumber = seedData_js_1.DEMO_RESIDENT_FLAT;
-        const [bills, notices, visitors, familyMembers, vehicles, user] = await Promise.all([
-            store_js_1.Store.getResidentBills(flatNumber),
-            store_js_1.Store.getNotices(),
-            store_js_1.Store.getVisitors(),
-            store_js_1.Store.getFamilyMembers(),
-            store_js_1.Store.getVehicles(),
-            store_js_1.Store.getUserByRole("resident"),
+import { Store } from "../services/store.js";
+import { asyncHandler, ApiError } from "../middleware/errorHandler.js";
+/**
+ * The caller's flat, taken from the signed token.
+ *
+ * This used to be the `DEMO_RESIDENT_FLAT` constant, which meant every
+ * resident saw — and could pay — the same flat's bills. A client-supplied flat
+ * would be no better, so it comes from the token the server signed.
+ */
+function callerFlat(req) {
+    const flatNumber = req.user?.flatNumber;
+    if (!flatNumber) {
+        throw new ApiError(403, "This account is not linked to a flat");
+    }
+    return flatNumber;
+}
+export const ResidentController = {
+    getDashboard: asyncHandler(async (req, res) => {
+        const flatNumber = callerFlat(req);
+        const [bills, notices, visitors, familyMembers, vehicles, account] = await Promise.all([
+            Store.getResidentBills(flatNumber),
+            Store.getNotices(),
+            Store.getVisitors(),
+            Store.getFamilyMembers(flatNumber),
+            Store.getVehicles(flatNumber),
+            Store.getUserById(req.user.id),
         ]);
+        // `getUserById` resolves in both the MongoDB and the in-memory mode, so
+        // there is no role-based fallback here. Falling back to "any resident"
+        // would serve the caller's own flatNumber beside a different resident's
+        // name, email and ownership.
+        const user = account;
+        if (!user) {
+            throw new ApiError(404, "Resident profile not found");
+        }
         const currentBill = bills.find((b) => b.status !== "paid") || bills[0] || null;
         res.json({
             success: true,
             message: "Resident dashboard fetched successfully",
             data: {
                 flatNumber,
-                wing: "A",
+                wing: user.wing,
                 tower: user.tower,
                 floor: user.floor,
                 ownership: user.ownership,
@@ -30,15 +48,17 @@ exports.ResidentController = {
                 currentBill,
                 allBills: bills,
                 notices,
-                recentVisitors: visitors.filter((v) => v.destinationFlat === flatNumber),
+                // Case-insensitive: a guard typing "a-404" at the gate should still show up
+                // on the resident's own visitor list.
+                recentVisitors: visitors.filter((v) => v.destinationFlat?.toUpperCase() === flatNumber.toUpperCase()),
                 familyMembers,
                 vehicles,
             },
         });
     }),
-    getBills: (0, errorHandler_js_1.asyncHandler)(async (_req, res) => {
-        const flatNumber = seedData_js_1.DEMO_RESIDENT_FLAT;
-        const bills = await store_js_1.Store.getResidentBills(flatNumber);
+    getBills: asyncHandler(async (req, res) => {
+        const flatNumber = callerFlat(req);
+        const bills = await Store.getResidentBills(flatNumber);
         const outstanding = bills
             .filter((b) => b.status !== "paid")
             .reduce((sum, b) => sum + b.amount, 0);
@@ -48,11 +68,15 @@ exports.ResidentController = {
             data: { flatNumber, outstanding, bills },
         });
     }),
-    payBill: (0, errorHandler_js_1.asyncHandler)(async (req, res) => {
-        const { flatNumber, transactionRef } = req.body;
-        const result = await store_js_1.Store.payBill(flatNumber, transactionRef);
+    payBill: asyncHandler(async (req, res) => {
+        const { transactionRef } = req.body;
+        // The flat in the body is validated for shape only. Ignoring it and
+        // paying the caller's own flat is what stops one resident settling
+        // another's dues from a tampered request.
+        const flatNumber = callerFlat(req);
+        const result = await Store.payBill(flatNumber, transactionRef);
         if (!result.success) {
-            throw new errorHandler_js_1.ApiError(404, result.message);
+            throw new ApiError(404, result.message);
         }
         res.json({
             success: true,
@@ -60,10 +84,11 @@ exports.ResidentController = {
             data: { bill: result.bill },
         });
     }),
-    preApproveVisitor: (0, errorHandler_js_1.asyncHandler)(async (req, res) => {
-        const visitor = await store_js_1.Store.addVisitor({
+    preApproveVisitor: asyncHandler(async (req, res) => {
+        const visitor = await Store.addVisitor({
             ...req.body,
-            destinationFlat: req.body.destinationFlat || seedData_js_1.DEMO_RESIDENT_FLAT,
+            // A resident can only issue a gate pass to their own flat.
+            destinationFlat: callerFlat(req),
             // Pre-approval grants a gate pass; the visitor is not inside until the
             // guard registers them at the gate.
             status: "Expected",
@@ -73,6 +98,36 @@ exports.ResidentController = {
             success: true,
             message: "Visitor pre-approved successfully",
             data: { visitor },
+        });
+    }),
+    /** Complaints the caller has raised. Always the caller's own flat. */
+    getComplaints: asyncHandler(async (req, res) => {
+        const flatNumber = callerFlat(req);
+        const complaints = await Store.getComplaints(flatNumber);
+        res.json({
+            success: true,
+            message: "Complaints fetched successfully",
+            data: { complaints },
+        });
+    }),
+    /**
+     * Raise a complaint. `flatNumber` and `residentName` are never read from the
+     * body — they come from the signed token, so a resident can only file against
+     * their own flat and only under their own name.
+     */
+    createComplaint: asyncHandler(async (req, res) => {
+        const flatNumber = callerFlat(req);
+        const account = await Store.getUserById(req.user.id);
+        const residentName = account?.name ?? req.user.email;
+        const complaint = await Store.createComplaint({
+            ...req.body,
+            flatNumber,
+            residentName,
+        });
+        res.status(201).json({
+            success: true,
+            message: "Complaint registered successfully",
+            data: { complaint },
         });
     }),
 };

@@ -3,6 +3,7 @@ import { ResidentController } from "../controllers/resident.controller.js";
 import { validate } from "../middleware/validate.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import {
+  createComplaintSchema,
   payBillSchema,
   preApproveVisitorSchema,
 } from "../validations/society.validations.js";
@@ -19,5 +20,7 @@ router.post(
   validate(preApproveVisitorSchema),
   ResidentController.preApproveVisitor
 );
+router.get("/complaints", ResidentController.getComplaints);
+router.post("/complaints", validate(createComplaintSchema), ResidentController.createComplaint);
 
 export default router;

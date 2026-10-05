@@ -1,22 +1,24 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommitteeController = void 0;
-const store_js_1 = require("../services/store.js");
-const errorHandler_js_1 = require("../middleware/errorHandler.js");
-exports.CommitteeController = {
-    getDashboard: (0, errorHandler_js_1.asyncHandler)(async (_req, res) => {
+import { Store } from "../services/store.js";
+import { asyncHandler, ApiError } from "../middleware/errorHandler.js";
+export const CommitteeController = {
+    getDashboard: asyncHandler(async (req, res) => {
         const [pendingNOCs, stats, meetings, snapshot, recentActions, fundBalances, vendorPayments, nocTypes, monthlyCollection, user,] = await Promise.all([
-            store_js_1.Store.getPendingNOCs(),
-            store_js_1.Store.getCommitteeStats(),
-            store_js_1.Store.getMeetings(),
-            store_js_1.Store.getMonthlySnapshot(),
-            store_js_1.Store.getRecentActions(),
-            store_js_1.Store.getFundBalances(),
-            store_js_1.Store.getVendorPayments(),
-            store_js_1.Store.getNOCTypes(),
-            store_js_1.Store.getMonthlyCollectionChart(),
-            store_js_1.Store.getUserByRole("committee"),
+            Store.getPendingNOCs(),
+            Store.getCommitteeStats(),
+            Store.getMeetings(),
+            Store.getMonthlySnapshot(),
+            Store.getRecentActions(),
+            Store.getFundBalances(),
+            Store.getVendorPayments(),
+            Store.getNOCTypes(),
+            Store.getMonthlyCollectionChart(),
+            // The signed-in member, not "anybody with the committee role" — the
+            // dashboard is signed with the member's name and designation.
+            Store.getUserById(req.user.id),
         ]);
+        if (!user) {
+            throw new ApiError(404, "Committee member profile not found");
+        }
         res.json({
             success: true,
             message: "Committee dashboard fetched successfully",
@@ -36,11 +38,11 @@ exports.CommitteeController = {
             },
         });
     }),
-    updateNOC: (0, errorHandler_js_1.asyncHandler)(async (req, res) => {
+    updateNOC: asyncHandler(async (req, res) => {
         const { status, reason } = req.body;
-        const result = await store_js_1.Store.updateNOCStatus(String(req.params.id), status, reason);
+        const result = await Store.updateNOCStatus(String(req.params.id), status, reason);
         if (!result.success) {
-            throw new errorHandler_js_1.ApiError(404, result.message);
+            throw new ApiError(404, result.message);
         }
         res.json({
             success: true,

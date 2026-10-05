@@ -3,7 +3,7 @@ import { Store } from "../services/store.js";
 import { asyncHandler, ApiError } from "../middleware/errorHandler.js";
 
 export const SecurityController = {
-  getGateDashboard: asyncHandler(async (_req: Request, res: Response) => {
+  getGateDashboard: asyncHandler(async (req: Request, res: Response) => {
     const [stats, visitors, gateLog, expectedVisitors, alerts, user] =
       await Promise.all([
         Store.getSecurityStats(),
@@ -11,8 +11,15 @@ export const SecurityController = {
         Store.getGateLog(),
         Store.getExpectedVisitors(),
         Store.getSecurityAlerts(),
-        Store.getUserByRole("security"),
+        // The token holder, not "somebody with the security role" — with more
+        // than one guard on the roster, a role lookup would show every guard
+        // whichever record sorted first.
+        Store.getUserById(req.user!.id),
       ]);
+
+    if (!user) {
+      throw new ApiError(404, "Guard profile not found");
+    }
 
     res.json({
       success: true,
@@ -26,7 +33,12 @@ export const SecurityController = {
         gate: "Main Gate",
         guardName: user.name,
         shift: user.shift,
-        currentDateText: "Jan 31, 2025",
+        currentDateText: new Intl.DateTimeFormat("en-IN", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(new Date()),
       },
     });
   }),

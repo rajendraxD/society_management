@@ -1,18 +1,21 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SecurityController = void 0;
-const store_js_1 = require("../services/store.js");
-const errorHandler_js_1 = require("../middleware/errorHandler.js");
-exports.SecurityController = {
-    getGateDashboard: (0, errorHandler_js_1.asyncHandler)(async (_req, res) => {
+import { Store } from "../services/store.js";
+import { asyncHandler, ApiError } from "../middleware/errorHandler.js";
+export const SecurityController = {
+    getGateDashboard: asyncHandler(async (req, res) => {
         const [stats, visitors, gateLog, expectedVisitors, alerts, user] = await Promise.all([
-            store_js_1.Store.getSecurityStats(),
-            store_js_1.Store.getActiveVisitors(),
-            store_js_1.Store.getGateLog(),
-            store_js_1.Store.getExpectedVisitors(),
-            store_js_1.Store.getSecurityAlerts(),
-            store_js_1.Store.getUserByRole("security"),
+            Store.getSecurityStats(),
+            Store.getActiveVisitors(),
+            Store.getGateLog(),
+            Store.getExpectedVisitors(),
+            Store.getSecurityAlerts(),
+            // The token holder, not "somebody with the security role" — with more
+            // than one guard on the roster, a role lookup would show every guard
+            // whichever record sorted first.
+            Store.getUserById(req.user.id),
         ]);
+        if (!user) {
+            throw new ApiError(404, "Guard profile not found");
+        }
         res.json({
             success: true,
             message: "Security dashboard fetched successfully",
@@ -25,22 +28,27 @@ exports.SecurityController = {
                 gate: "Main Gate",
                 guardName: user.name,
                 shift: user.shift,
-                currentDateText: "Jan 31, 2025",
+                currentDateText: new Intl.DateTimeFormat("en-IN", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                }).format(new Date()),
             },
         });
     }),
-    checkInVisitor: (0, errorHandler_js_1.asyncHandler)(async (req, res) => {
-        const visitor = await store_js_1.Store.addVisitor(req.body);
+    checkInVisitor: asyncHandler(async (req, res) => {
+        const visitor = await Store.addVisitor(req.body);
         res.status(201).json({
             success: true,
             message: "Visitor entered and notification sent to flat resident",
             data: { visitor },
         });
     }),
-    checkOutVisitor: (0, errorHandler_js_1.asyncHandler)(async (req, res) => {
-        const result = await store_js_1.Store.markVisitorExit(String(req.params.visitorId));
+    checkOutVisitor: asyncHandler(async (req, res) => {
+        const result = await Store.markVisitorExit(String(req.params.visitorId));
         if (!result.success) {
-            throw new errorHandler_js_1.ApiError(404, result.message);
+            throw new ApiError(404, result.message);
         }
         res.json({
             success: true,

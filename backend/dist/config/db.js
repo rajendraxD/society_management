@@ -1,19 +1,12 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.connectDB = connectDB;
-exports.isDbConnected = isDbConnected;
-const mongoose_1 = __importDefault(require("mongoose"));
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
 let isConnected = false;
-async function connectDB() {
+export async function connectDB() {
     const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/society_management";
     try {
-        mongoose_1.default.set("strictQuery", false);
-        await mongoose_1.default.connect(uri, {
+        mongoose.set("strictQuery", false);
+        await mongoose.connect(uri, {
             serverSelectionTimeoutMS: 2000,
         });
         isConnected = true;
@@ -27,6 +20,6 @@ async function connectDB() {
         return false;
     }
 }
-function isDbConnected() {
+export function isDbConnected() {
     return isConnected;
 }

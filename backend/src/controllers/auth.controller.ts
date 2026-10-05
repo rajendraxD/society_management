@@ -38,11 +38,17 @@ function issueTokens(user: {
   _id: unknown;
   role: UserRole;
   email: string;
+  flatNumber?: string;
   refreshTokenVersion?: number;
 }) {
   const id = String(user._id);
   return {
-    accessToken: signAccessToken({ sub: id, role: user.role, email: user.email }),
+    accessToken: signAccessToken({
+      sub: id,
+      role: user.role,
+      email: user.email,
+      flatNumber: user.flatNumber,
+    }),
     refreshToken: signRefreshToken({
       sub: id,
       ver: user.refreshTokenVersion ?? 0,
@@ -78,7 +84,14 @@ export const AuthController = {
       );
     }
 
-    const { accessToken, refreshToken } = issueTokens(user);
+    const { accessToken, refreshToken } = issueTokens({
+      _id: user._id,
+      role: user.role as UserRole,
+      email: user.email,
+      flatNumber: (user as { flatNumber?: string }).flatNumber,
+      refreshTokenVersion: (user as { refreshTokenVersion?: number })
+        .refreshTokenVersion,
+    });
     res.cookie(REFRESH_COOKIE_NAME, refreshToken, refreshCookieOptions());
 
     res.json({
@@ -116,6 +129,7 @@ export const AuthController = {
       _id: payload.sub,
       role: user.role as UserRole,
       email: user.email,
+      flatNumber: (user as { flatNumber?: string }).flatNumber,
       refreshTokenVersion: payload.ver,
     });
     res.cookie(REFRESH_COOKIE_NAME, tokens.refreshToken, refreshCookieOptions());

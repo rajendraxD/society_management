@@ -52,6 +52,20 @@ export interface BillItem {
   transactionRef?: string;
 }
 
+export interface ComplaintItem {
+  id: string;
+  title: string;
+  category: string;
+  flatNumber: string;
+  residentName: string;
+  description: string;
+  status: "Open" | "In Progress" | "Resolved";
+  priority: "Low" | "Medium" | "High" | "Emergency";
+  assignedTo?: string;
+  raisedAt: Date;
+  resolvedAt?: Date;
+}
+
 /** The flat used for every resident-scoped screen in the demo. */
 export const DEMO_RESIDENT_FLAT = "A-404";
 
@@ -232,15 +246,78 @@ export const INITIAL_BILLS: BillItem[] = [
   },
 ];
 
+/**
+ * Keyed on `flatNumber` so every resident sees only their own household.
+ * Without the key these were one shared list — every flat in the society would
+ * have shown the same family and the same cars.
+ */
 export const INITIAL_FAMILY_MEMBERS = [
-  { name: "Rohit Sharma", relation: "Spouse", phone: "+91 98765 11223", age: 38 },
-  { name: "Aarav Sharma", relation: "Son", phone: "+91 98765 33445", age: 11 },
-  { name: "Kamla Devi", relation: "House Help", phone: "+91 98765 55667", age: 45 },
+  { flatNumber: DEMO_RESIDENT_FLAT, name: "Rohit Sharma", relation: "Spouse", phone: "+91 98765 11223", age: 38 },
+  { flatNumber: DEMO_RESIDENT_FLAT, name: "Aarav Sharma", relation: "Son", phone: "+91 98765 33445", age: 11 },
+  { flatNumber: DEMO_RESIDENT_FLAT, name: "Kamla Devi", relation: "House Help", phone: "+91 98765 55667", age: 45 },
 ];
 
 export const INITIAL_VEHICLES = [
-  { type: "Car", number: "MH 02 CZ 4421", parkingSlot: "P-14 (Basement 1)" },
-  { type: "Motorcycle", number: "MH 02 BK 9012", parkingSlot: "B-22" },
+  { flatNumber: DEMO_RESIDENT_FLAT, type: "Car", number: "MH 02 CZ 4421", parkingSlot: "P-14 (Basement 1)" },
+  { flatNumber: DEMO_RESIDENT_FLAT, type: "Motorcycle", number: "MH 02 BK 9012", parkingSlot: "B-22" },
+];
+
+/* ------------------------------------------------------------------ *
+ * Complaints
+ * ------------------------------------------------------------------ */
+
+export const INITIAL_COMPLAINTS: ComplaintItem[] = [
+  {
+    id: "cmp-1",
+    title: "Kitchen sink leaking",
+    category: "Plumbing",
+    flatNumber: DEMO_RESIDENT_FLAT,
+    residentName: "Priya Sharma",
+    description:
+      "Water pooling under the kitchen sink since yesterday evening. The trap joint is dripping steadily.",
+    status: "In Progress",
+    priority: "High",
+    assignedTo: "Ramesh Plumbing",
+    raisedAt: new Date("2025-01-29T09:15:00"),
+  },
+  {
+    id: "cmp-2",
+    title: "Lift stuck between floors 3 and 4",
+    category: "Lift",
+    flatNumber: "B-205",
+    residentName: "Meera Nair",
+    description:
+      "Lift B stopped with four passengers inside for six minutes. Manual reset by the technician.",
+    status: "Resolved",
+    priority: "Emergency",
+    assignedTo: "Kone Lift Services",
+    raisedAt: new Date("2025-01-30T18:40:00"),
+    resolvedAt: new Date("2025-01-30T20:05:00"),
+  },
+  {
+    id: "cmp-3",
+    title: "Basement B2 lights out",
+    category: "Electrical",
+    flatNumber: "C-401",
+    residentName: "Arjun Rao",
+    description:
+      "The entire B2 parking level is dark after 8pm. Residents are navigating by phone torch.",
+    status: "Open",
+    priority: "High",
+    raisedAt: new Date("2025-01-31T08:20:00"),
+  },
+  {
+    id: "cmp-4",
+    title: "Corridor dustbins not collected",
+    category: "Cleanliness",
+    flatNumber: "A-108",
+    residentName: "Deepak Kulkarni",
+    description:
+      "The dustbins on the third-floor A-wing corridor have not been emptied for three days.",
+    status: "Open",
+    priority: "Low",
+    raisedAt: new Date("2025-01-28T07:00:00"),
+  },
 ];
 
 export const INITIAL_NOTICES = [

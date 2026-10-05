@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthController = void 0;
-const store_js_1 = require("../services/store.js");
-const errorHandler_js_1 = require("../middleware/errorHandler.js");
-const password_js_1 = require("../utils/password.js");
-const tokens_js_1 = require("../utils/tokens.js");
+import { Store } from "../services/store.js";
+import { asyncHandler, ApiError } from "../middleware/errorHandler.js";
+import { verifyPassword } from "../utils/password.js";
+import { REFRESH_COOKIE_NAME, refreshCookieMaxAge, signAccessToken, signRefreshToken, verifyRefreshToken, } from "../utils/tokens.js";
 const isProd = () => process.env.NODE_ENV === "production";
 /**
  * Refresh token lives in an httpOnly cookie so JavaScript — and therefore any
@@ -16,7 +13,7 @@ const refreshCookieOptions = () => ({
     secure: isProd(),
     sameSite: (isProd() ? "none" : "lax"),
     path: "/api/auth",
-    maxAge: (0, tokens_js_1.refreshCookieMaxAge)(),
+    maxAge: refreshCookieMaxAge(),
 });
 /** Strips fields the client never needs, notably the password hash. */
 function toPublicUser(user) {
@@ -28,36 +25,48 @@ function toPublicUser(user) {
 function issueTokens(user) {
     const id = String(user._id);
     return {
-        accessToken: (0, tokens_js_1.signAccessToken)({ sub: id, role: user.role, email: user.email }),
-        refreshToken: (0, tokens_js_1.signRefreshToken)({
+        accessToken: signAccessToken({
+            sub: id,
+            role: user.role,
+            email: user.email,
+            flatNumber: user.flatNumber,
+        }),
+        refreshToken: signRefreshToken({
             sub: id,
             ver: user.refreshTokenVersion ?? 0,
         }),
     };
 }
-exports.AuthController = {
+export const AuthController = {
     /**
      * Password sign-in. The email identifies the account and the role stored on
      * it decides what the token grants — the role posted by the client is only
      * used to catch a mismatched login screen, never to authorise anything.
      */
-    login: (0, errorHandler_js_1.asyncHandler)(async (req, res) => {
+    login: asyncHandler(async (req, res) => {
         const { email, password, role } = req.body;
-        const user = await store_js_1.Store.getUserByEmailWithHash(email);
+        const user = await Store.getUserByEmailWithHash(email);
         // One generic message for "no such user" and "wrong password" so the
         // endpoint cannot be used to enumerate registered emails.
         if (!user || !user.isActive) {
-            throw new errorHandler_js_1.ApiError(401, "Invalid email or password");
+            throw new ApiError(401, "Invalid email or password");
         }
-        const passwordOk = await (0, password_js_1.verifyPassword)(password, user.passwordHash);
+        const passwordOk = await verifyPassword(password, user.passwordHash);
         if (!passwordOk) {
-            throw new errorHandler_js_1.ApiError(401, "Invalid email or password");
+            throw new ApiError(401, "Invalid email or password");
         }
         if (role && role !== user.role) {
-            throw new errorHandler_js_1.ApiError(403, `These credentials belong to a ${user.role} account. Switch to the ${user.role} login.`);
+            throw new ApiError(403, `These credentials belong to a ${user.role} account. Switch to the ${user.role} login.`);
         }
-        const { accessToken, refreshToken } = issueTokens(user);
-        res.cookie(tokens_js_1.REFRESH_COOKIE_NAME, refreshToken, refreshCookieOptions());
+        const { accessToken, refreshToken } = issueTokens({
+            _id: user._id,
+            role: user.role,
+            email: user.email,
+            flatNumber: user.flatNumber,
+            refreshTokenVersion: user
+                .refreshTokenVersion,
+        });
+        res.cookie(REFRESH_COOKIE_NAME, refreshToken, refreshCookieOptions());
         res.json({
             success: true,
             message: "Authentication successful",
@@ -65,33 +74,34 @@ exports.AuthController = {
         });
     }),
     /** Exchanges the refresh cookie for a fresh access token. */
-    refresh: (0, errorHandler_js_1.asyncHandler)(async (req, res) => {
-        const token = req.cookies?.[tokens_js_1.REFRESH_COOKIE_NAME];
+    refresh: asyncHandler(async (req, res) => {
+        const token = req.cookies?.[REFRESH_COOKIE_NAME];
         if (!token) {
-            throw new errorHandler_js_1.ApiError(401, "No active session");
+            throw new ApiError(401, "No active session");
         }
         let payload;
         try {
-            payload = (0, tokens_js_1.verifyRefreshToken)(token);
+            payload = verifyRefreshToken(token);
         }
         catch {
-            throw new errorHandler_js_1.ApiError(401, "Session expired. Please sign in again.");
+            throw new ApiError(401, "Session expired. Please sign in again.");
         }
-        const user = await store_js_1.Store.getUserById(payload.sub);
+        const user = await Store.getUserById(payload.sub);
         if (!user || !user.isActive) {
-            throw new errorHandler_js_1.ApiError(401, "Account is no longer active");
+            throw new ApiError(401, "Account is no longer active");
         }
         // A version mismatch means this token was revoked by a logout.
         if (user.refreshTokenVersion !== payload.ver) {
-            throw new errorHandler_js_1.ApiError(401, "Session expired. Please sign in again.");
+            throw new ApiError(401, "Session expired. Please sign in again.");
         }
         const tokens = issueTokens({
             _id: payload.sub,
             role: user.role,
             email: user.email,
+            flatNumber: user.flatNumber,
             refreshTokenVersion: payload.ver,
         });
-        res.cookie(tokens_js_1.REFRESH_COOKIE_NAME, tokens.refreshToken, refreshCookieOptions());
+        res.cookie(REFRESH_COOKIE_NAME, tokens.refreshToken, refreshCookieOptions());
         res.json({
             success: true,
             message: "Session refreshed",
@@ -99,18 +109,18 @@ exports.AuthController = {
         });
     }),
     /** Revokes every refresh token for the caller and clears the cookie. */
-    logout: (0, errorHandler_js_1.asyncHandler)(async (req, res) => {
+    logout: asyncHandler(async (req, res) => {
         if (req.user) {
-            await store_js_1.Store.bumpRefreshTokenVersion(req.user.id);
+            await Store.bumpRefreshTokenVersion(req.user.id);
         }
-        res.clearCookie(tokens_js_1.REFRESH_COOKIE_NAME, { ...refreshCookieOptions(), maxAge: 0 });
+        res.clearCookie(REFRESH_COOKIE_NAME, { ...refreshCookieOptions(), maxAge: 0 });
         res.json({ success: true, message: "Signed out successfully", data: {} });
     }),
     /** Profile of the token holder — used to rehydrate the client after reload. */
-    me: (0, errorHandler_js_1.asyncHandler)(async (req, res) => {
-        const user = await store_js_1.Store.getUserById(req.user.id);
+    me: asyncHandler(async (req, res) => {
+        const user = await Store.getUserById(req.user.id);
         if (!user) {
-            throw new errorHandler_js_1.ApiError(404, "User not found");
+            throw new ApiError(404, "User not found");
         }
         res.json({
             success: true,
@@ -118,8 +128,14 @@ exports.AuthController = {
             data: { user },
         });
     }),
-    getRoles: (0, errorHandler_js_1.asyncHandler)(async (_req, res) => {
-        const users = await store_js_1.Store.getUsers();
+    /**
+     * Role metadata for the role-select screen. Unauthenticated by necessity —
+     * nobody has signed in yet — so it returns role labels only. User records
+     * (name, email, phone, Aadhaar digits) must never be added here: this route
+     * has no auth and is therefore public.
+     */
+    getRoles: asyncHandler(async (_req, res) => {
+        const users = await Store.getUsers();
         res.json({
             success: true,
             message: "Roles fetched successfully",
@@ -129,7 +145,6 @@ exports.AuthController = {
                     name: u.title,
                     badgeLine: u.badgeLine,
                 })),
-                users,
             },
         });
     }),

@@ -268,6 +268,45 @@
           </button>
         </div>
 
+        <!-- ================= MY COMPLAINTS ================= -->
+        <div class="section-title-row">
+          <span class="section-title">My Complaints</span>
+          <button class="section-action" (click)="openComplaintModal()">
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+            Raise
+          </button>
+        </div>
+
+        <div class="empty-state" *ngIf="!complaints.length">
+          <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+          <p>No complaints raised for Flat {{ flatNumber }}.</p>
+        </div>
+
+        <div class="visitor-card" *ngFor="let complaint of complaints">
+          <div class="visitor-card__top">
+            <div class="visitor-card__meta">
+              <h3 class="visitor-card__name">{{ complaint.title }}</h3>
+              <p class="visitor-card__sub">
+                {{ complaint.category }} · {{ formatShortDate(complaint.raisedAt) }}
+              </p>
+            </div>
+            <span class="status-chip" [ngClass]="'status-chip--' + complaintStatusTone(complaint.status)">
+              {{ complaint.status }}
+            </span>
+          </div>
+
+          <p class="complaint-body">{{ complaint.description }}</p>
+
+          <div class="complaint-foot">
+            <span class="status-chip" [ngClass]="'status-chip--' + complaintPriorityTone(complaint.priority)">
+              {{ complaint.priority }}
+            </span>
+            <span class="complaint-foot__text">
+              {{ complaint.assignedTo ? "Assigned to " + complaint.assignedTo : "Awaiting assignment" }}
+            </span>
+          </div>
+        </div>
+
         <button class="sign-out-btn" (click)="signOut()">
           <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
           <span>Sign Out</span>
@@ -394,6 +433,75 @@
 
           <ion-button expand="block" shape="round" color="success" class="mt-4" (click)="submitPreApprove()">
             Approve Fast Gate Entry
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- RAISE COMPLAINT MODAL -->
+  <ion-modal [isOpen]="isComplaintModalOpen" (didDismiss)="closeComplaintModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="warning">
+          <ion-title>Raise Complaint</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeComplaintModal()">Cancel</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="pre-approve-form">
+          <p class="modal-intro">
+            Raised against Flat {{ flatNumber }} and tracked by the managing committee.
+          </p>
+
+          <ion-item fill="outline" class="form-input">
+            <ion-label position="floating">Issue Title</ion-label>
+            <ion-input
+              [(ngModel)]="newComplaintTitle"
+              placeholder="e.g. Kitchen sink leaking"
+            ></ion-input>
+          </ion-item>
+
+          <ion-item fill="outline" class="form-input">
+            <ion-label position="floating">Category</ion-label>
+            <ion-select [(ngModel)]="newComplaintCategory">
+              <ion-select-option *ngFor="let c of complaintCategories" [value]="c">
+                {{ c }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item fill="outline" class="form-input">
+            <ion-label position="floating">Priority</ion-label>
+            <ion-select [(ngModel)]="newComplaintPriority">
+              <ion-select-option *ngFor="let p of complaintPriorities" [value]="p">
+                {{ p }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item fill="outline" class="form-input">
+            <ion-label position="floating">Describe the issue</ion-label>
+            <ion-textarea
+              [(ngModel)]="newComplaintDescription"
+              [autoGrow]="true"
+              [counter]="true"
+              [maxlength]="1000"
+              placeholder="What happened, where, and since when?"
+            ></ion-textarea>
+          </ion-item>
+
+          <ion-button
+            expand="block"
+            shape="round"
+            color="warning"
+            class="mt-4"
+            [disabled]="isSubmittingComplaint"
+            (click)="submitComplaint()"
+          >
+            {{ isSubmittingComplaint ? "Submitting…" : "Submit Complaint" }}
           </ion-button>
         </div>
       </ion-content>

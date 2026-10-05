@@ -1,20 +1,17 @@
-"use strict";
 /**
  * Canonical demo dataset for Harmony Heights CHS.
  * Every screen in the Android app is driven by this data so the UI and the
  * API never drift apart.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ADMIN_REPORTS = exports.ADMIN_MODULES = exports.ADMIN_ALERTS = exports.EXPENSE_BREAKDOWN = exports.MONTHLY_COLLECTION = exports.ADMIN_KPIS = exports.INITIAL_MEETINGS = exports.INITIAL_VENDOR_PAYMENTS = exports.INITIAL_FUND_BALANCES = exports.INITIAL_RECENT_ACTIONS = exports.INITIAL_SNAPSHOT = exports.INITIAL_COMMITTEE_STATS = exports.NOC_TYPES = exports.INITIAL_NOCS = exports.INITIAL_SECURITY_STATS = exports.INITIAL_SECURITY_ALERTS = exports.INITIAL_EXPECTED_VISITORS = exports.INITIAL_GATE_LOG = exports.INITIAL_VISITORS = exports.INITIAL_NOTICES = exports.INITIAL_VEHICLES = exports.INITIAL_FAMILY_MEMBERS = exports.INITIAL_BILLS = exports.INITIAL_USERS = exports.INITIAL_SOCIETY = exports.DEMO_PASSWORD = exports.DEMO_RESIDENT_FLAT = void 0;
 /** The flat used for every resident-scoped screen in the demo. */
-exports.DEMO_RESIDENT_FLAT = "A-404";
+export const DEMO_RESIDENT_FLAT = "A-404";
 /**
  * Password for all four seeded demo accounts. Documented in the README so the
  * client can sign in; hashed with bcrypt at seed time and never stored in
  * plaintext. Replace before any real deployment.
  */
-exports.DEMO_PASSWORD = "Society@123";
-exports.INITIAL_SOCIETY = {
+export const DEMO_PASSWORD = "Society@123";
+export const INITIAL_SOCIETY = {
     name: "Harmony Heights Co-op Housing Society",
     registrationNumber: "MUM/MH/HSG/2018/4921",
     address: "Link Road, Near Inorbit Mall, Malad West",
@@ -23,7 +20,7 @@ exports.INITIAL_SOCIETY = {
     totalFlats: 120,
     wings: ["A", "B", "C", "D"],
 };
-exports.INITIAL_USERS = [
+export const INITIAL_USERS = [
     {
         name: "Rajesh Mehta",
         email: "rajesh.mehta@harmonysociety.in",
@@ -42,9 +39,9 @@ exports.INITIAL_USERS = [
         phone: "+91 98765 43210",
         role: "resident",
         title: "Resident",
-        badgeLine: `Flat ${exports.DEMO_RESIDENT_FLAT} · 3 BHK`,
+        badgeLine: `Flat ${DEMO_RESIDENT_FLAT} · 3 BHK`,
         wing: "A",
-        flatNumber: exports.DEMO_RESIDENT_FLAT,
+        flatNumber: DEMO_RESIDENT_FLAT,
         tower: "A",
         floor: "3rd Floor",
         ownership: "Owner",
@@ -82,9 +79,9 @@ exports.INITIAL_USERS = [
  * Resident
  * ------------------------------------------------------------------ */
 /** Newest first, matching the "Bill History" list in the Bills screen. */
-exports.INITIAL_BILLS = [
+export const INITIAL_BILLS = [
     {
-        flatNumber: exports.DEMO_RESIDENT_FLAT,
+        flatNumber: DEMO_RESIDENT_FLAT,
         wing: "A",
         residentName: "Priya Sharma",
         billingMonth: "January 2025",
@@ -98,7 +95,7 @@ exports.INITIAL_BILLS = [
         status: "pending",
     },
     {
-        flatNumber: exports.DEMO_RESIDENT_FLAT,
+        flatNumber: DEMO_RESIDENT_FLAT,
         wing: "A",
         residentName: "Priya Sharma",
         billingMonth: "December 2024",
@@ -115,7 +112,7 @@ exports.INITIAL_BILLS = [
         transactionRef: "UPI/30918291039",
     },
     {
-        flatNumber: exports.DEMO_RESIDENT_FLAT,
+        flatNumber: DEMO_RESIDENT_FLAT,
         wing: "A",
         residentName: "Priya Sharma",
         billingMonth: "November 2024",
@@ -132,7 +129,7 @@ exports.INITIAL_BILLS = [
         transactionRef: "UPI/30119823711",
     },
     {
-        flatNumber: exports.DEMO_RESIDENT_FLAT,
+        flatNumber: DEMO_RESIDENT_FLAT,
         wing: "A",
         residentName: "Priya Sharma",
         billingMonth: "October 2024",
@@ -149,7 +146,7 @@ exports.INITIAL_BILLS = [
         transactionRef: "NEFT/2984710293",
     },
     {
-        flatNumber: exports.DEMO_RESIDENT_FLAT,
+        flatNumber: DEMO_RESIDENT_FLAT,
         wing: "A",
         residentName: "Priya Sharma",
         billingMonth: "September 2024",
@@ -180,16 +177,73 @@ exports.INITIAL_BILLS = [
         status: "overdue",
     },
 ];
-exports.INITIAL_FAMILY_MEMBERS = [
-    { name: "Rohit Sharma", relation: "Spouse", phone: "+91 98765 11223", age: 38 },
-    { name: "Aarav Sharma", relation: "Son", phone: "+91 98765 33445", age: 11 },
-    { name: "Kamla Devi", relation: "House Help", phone: "+91 98765 55667", age: 45 },
+/**
+ * Keyed on `flatNumber` so every resident sees only their own household.
+ * Without the key these were one shared list — every flat in the society would
+ * have shown the same family and the same cars.
+ */
+export const INITIAL_FAMILY_MEMBERS = [
+    { flatNumber: DEMO_RESIDENT_FLAT, name: "Rohit Sharma", relation: "Spouse", phone: "+91 98765 11223", age: 38 },
+    { flatNumber: DEMO_RESIDENT_FLAT, name: "Aarav Sharma", relation: "Son", phone: "+91 98765 33445", age: 11 },
+    { flatNumber: DEMO_RESIDENT_FLAT, name: "Kamla Devi", relation: "House Help", phone: "+91 98765 55667", age: 45 },
 ];
-exports.INITIAL_VEHICLES = [
-    { type: "Car", number: "MH 02 CZ 4421", parkingSlot: "P-14 (Basement 1)" },
-    { type: "Motorcycle", number: "MH 02 BK 9012", parkingSlot: "B-22" },
+export const INITIAL_VEHICLES = [
+    { flatNumber: DEMO_RESIDENT_FLAT, type: "Car", number: "MH 02 CZ 4421", parkingSlot: "P-14 (Basement 1)" },
+    { flatNumber: DEMO_RESIDENT_FLAT, type: "Motorcycle", number: "MH 02 BK 9012", parkingSlot: "B-22" },
 ];
-exports.INITIAL_NOTICES = [
+/* ------------------------------------------------------------------ *
+ * Complaints
+ * ------------------------------------------------------------------ */
+export const INITIAL_COMPLAINTS = [
+    {
+        id: "cmp-1",
+        title: "Kitchen sink leaking",
+        category: "Plumbing",
+        flatNumber: DEMO_RESIDENT_FLAT,
+        residentName: "Priya Sharma",
+        description: "Water pooling under the kitchen sink since yesterday evening. The trap joint is dripping steadily.",
+        status: "In Progress",
+        priority: "High",
+        assignedTo: "Ramesh Plumbing",
+        raisedAt: new Date("2025-01-29T09:15:00"),
+    },
+    {
+        id: "cmp-2",
+        title: "Lift stuck between floors 3 and 4",
+        category: "Lift",
+        flatNumber: "B-205",
+        residentName: "Meera Nair",
+        description: "Lift B stopped with four passengers inside for six minutes. Manual reset by the technician.",
+        status: "Resolved",
+        priority: "Emergency",
+        assignedTo: "Kone Lift Services",
+        raisedAt: new Date("2025-01-30T18:40:00"),
+        resolvedAt: new Date("2025-01-30T20:05:00"),
+    },
+    {
+        id: "cmp-3",
+        title: "Basement B2 lights out",
+        category: "Electrical",
+        flatNumber: "C-401",
+        residentName: "Arjun Rao",
+        description: "The entire B2 parking level is dark after 8pm. Residents are navigating by phone torch.",
+        status: "Open",
+        priority: "High",
+        raisedAt: new Date("2025-01-31T08:20:00"),
+    },
+    {
+        id: "cmp-4",
+        title: "Corridor dustbins not collected",
+        category: "Cleanliness",
+        flatNumber: "A-108",
+        residentName: "Deepak Kulkarni",
+        description: "The dustbins on the third-floor A-wing corridor have not been emptied for three days.",
+        status: "Open",
+        priority: "Low",
+        raisedAt: new Date("2025-01-28T07:00:00"),
+    },
+];
+export const INITIAL_NOTICES = [
     {
         id: "not-1",
         title: "Water supply disruption · Feb 2nd",
@@ -224,7 +278,7 @@ exports.INITIAL_NOTICES = [
 /* ------------------------------------------------------------------ *
  * Security
  * ------------------------------------------------------------------ */
-exports.INITIAL_VISITORS = [
+export const INITIAL_VISITORS = [
     {
         id: "vis-1",
         name: "Rohit Sharma",
@@ -283,7 +337,7 @@ exports.INITIAL_VISITORS = [
     },
 ];
 /** Full gate log — newest first. Drives the Visitor Log screen. */
-exports.INITIAL_GATE_LOG = [
+export const INITIAL_GATE_LOG = [
     { id: "log-1", name: "Delivery · Amazon", visitorType: "Delivery", destinationFlat: "B-201", inTime: new Date("2025-01-31T10:45:00"), outTime: new Date("2025-01-31T10:52:00") },
     { id: "log-2", name: "Rahul Gupta", visitorType: "Guest", destinationFlat: "A-101", inTime: new Date("2025-01-31T10:32:00"), outTime: null },
     { id: "log-3", name: "Sunita (Maid)", visitorType: "Staff", destinationFlat: "C-305", inTime: new Date("2025-01-31T09:58:00"), outTime: null },
@@ -292,18 +346,18 @@ exports.INITIAL_GATE_LOG = [
     { id: "log-6", name: "Rohit Singh", visitorType: "Guest", destinationFlat: "D-502", inTime: new Date("2025-01-31T08:45:00"), outTime: new Date("2025-01-31T09:30:00") },
     { id: "log-7", name: "Geeta (Maid)", visitorType: "Staff", destinationFlat: "A-303", inTime: new Date("2025-01-31T08:30:00"), outTime: null },
 ];
-exports.INITIAL_EXPECTED_VISITORS = [
+export const INITIAL_EXPECTED_VISITORS = [
     { id: "exp-1", name: "Rohit Sharma", destinationFlat: "A-404", expectedAt: new Date("2025-01-31T11:00:00"), status: "Approved" },
     { id: "exp-2", name: "Electrician", destinationFlat: "B-201", expectedAt: new Date("2025-01-31T14:00:00"), status: "Approved" },
     { id: "exp-3", name: "Dr. Kavita Patel", destinationFlat: "C-305", expectedAt: new Date("2025-01-31T16:00:00"), status: "Pending" },
 ];
-exports.INITIAL_SECURITY_ALERTS = [
+export const INITIAL_SECURITY_ALERTS = [
     { id: "sec-alt-1", text: "Unverified vehicle in B-wing parking", severity: "HIGH", time: "Now" },
     { id: "sec-alt-2", text: "Gate B lock malfunction reported", severity: "HIGH", time: "25m ago" },
     { id: "sec-alt-3", text: "Visitor in A-wing overstayed 2 hrs", severity: "MEDIUM", time: "1h ago" },
     { id: "sec-alt-4", text: "Night patrol check due: Tower C-10F", severity: "LOW", time: "2h ago" },
 ];
-exports.INITIAL_SECURITY_STATS = {
+export const INITIAL_SECURITY_STATS = {
     visitorsToday: 41,
     deliveriesToday: 12,
     expectedToday: 8,
@@ -314,7 +368,7 @@ exports.INITIAL_SECURITY_STATS = {
 /* ------------------------------------------------------------------ *
  * Committee
  * ------------------------------------------------------------------ */
-exports.INITIAL_NOCS = [
+export const INITIAL_NOCS = [
     {
         id: "noc-1",
         applicantName: "Vikram Nair",
@@ -346,7 +400,7 @@ exports.INITIAL_NOCS = [
         documents: ["Tenant_Aadhaar.pdf", "Police_Verification_Ack.pdf"],
     },
 ];
-exports.NOC_TYPES = [
+export const NOC_TYPES = [
     "Property Sale",
     "Bank Loan",
     "Passport",
@@ -356,35 +410,35 @@ exports.NOC_TYPES = [
     "Business License",
     "Society Transfer",
 ];
-exports.INITIAL_COMMITTEE_STATS = {
+export const INITIAL_COMMITTEE_STATS = {
     pendingNOCs: 3,
     complaintEscalations: 7,
     staffApprovals: 2,
     vendorInvoices: 4,
 };
-exports.INITIAL_SNAPSHOT = {
+export const INITIAL_SNAPSHOT = {
     totalCollection: 1850000,
     totalExpenses: 1020000,
     netSurplus: 830000,
     collectionEfficiency: 78,
 };
-exports.INITIAL_RECENT_ACTIONS = [
+export const INITIAL_RECENT_ACTIONS = [
     { id: "act-1", text: "Approved NOC for B-205 (Bank Loan)", time: "2h ago" },
     { id: "act-2", text: "Rejected vendor invoice #INV-2847", time: "Yesterday" },
     { id: "act-3", text: "Signed Lift AMC contract renewal", time: "Jan 29" },
 ];
-exports.INITIAL_FUND_BALANCES = [
+export const INITIAL_FUND_BALANCES = [
     { name: "Maintenance Fund", amount: 4520000, color: "#8B5CF6" },
     { name: "Sinking Fund", amount: 1850000, color: "#0EA5E9" },
     { name: "Repair Fund", amount: 830000, color: "#F59E0B" },
     { name: "Corpus Fund", amount: 12500000, color: "#10B981" },
 ];
-exports.INITIAL_VENDOR_PAYMENTS = [
+export const INITIAL_VENDOR_PAYMENTS = [
     { id: "vp-1", vendor: "Kone Lift Services", amount: 85000, dueDate: "Feb 3" },
     { id: "vp-2", vendor: "Aquaguard Water AMC", amount: 12500, dueDate: "Feb 5" },
     { id: "vp-3", vendor: "SecureZone CCTV", amount: 32000, dueDate: "Feb 10" },
 ];
-exports.INITIAL_MEETINGS = [
+export const INITIAL_MEETINGS = [
     {
         id: "meet-1",
         title: "AGM 2025",
@@ -425,7 +479,7 @@ exports.INITIAL_MEETINGS = [
 /* ------------------------------------------------------------------ *
  * Admin
  * ------------------------------------------------------------------ */
-exports.ADMIN_KPIS = {
+export const ADMIN_KPIS = {
     todayCollection: 245800,
     todayCollectionChange: "+12% vs yesterday",
     pendingBillsCount: 47,
@@ -441,7 +495,7 @@ exports.ADMIN_KPIS = {
     currentDateText: "Friday, January 31, 2025",
 };
 /** Income and expense are both in ₹ Lakhs. */
-exports.MONTHLY_COLLECTION = [
+export const MONTHLY_COLLECTION = [
     { month: "Aug", income: 15.2, expense: 8.5 },
     { month: "Sep", income: 16.8, expense: 9.2 },
     { month: "Oct", income: 14.5, expense: 8.1 },
@@ -449,20 +503,20 @@ exports.MONTHLY_COLLECTION = [
     { month: "Dec", income: 16.4, expense: 9.4 },
     { month: "Jan", income: 18.5, expense: 10.2 },
 ];
-exports.EXPENSE_BREAKDOWN = [
+export const EXPENSE_BREAKDOWN = [
     { category: "Security", percentage: 28, amount: 285600, color: "#EF4444" },
     { category: "Utilities", percentage: 32, amount: 326400, color: "#3B82F6" },
     { category: "Maintenance", percentage: 19, amount: 193800, color: "#F59E0B" },
     { category: "Housekeeping", percentage: 15, amount: 153000, color: "#10B981" },
     { category: "Admin", percentage: 6, amount: 61200, color: "#8B5CF6" },
 ];
-exports.ADMIN_ALERTS = [
+export const ADMIN_ALERTS = [
     { id: "alt-1", type: "warning", text: "Lift maintenance due - Tower B", time: "2h ago", icon: "warning-outline" },
     { id: "alt-2", type: "info", text: "3 new NOC requests pending approval", time: "4h ago", icon: "notifications-outline" },
     { id: "alt-3", type: "success", text: "Water pump maintenance completed", time: "6h ago", icon: "checkmark-circle-outline" },
     { id: "alt-4", type: "danger", text: "A-301 bill overdue by 30 days", time: "1d ago", icon: "alert-circle-outline" },
 ];
-exports.ADMIN_MODULES = [
+export const ADMIN_MODULES = [
     { id: "society", name: "Society", icon: "business-outline", badgeColor: "#E0E7FF", iconColor: "#3B82F6" },
     { id: "flats", name: "Flats", icon: "home-outline", badgeColor: "#DCFCE7", iconColor: "#10B981" },
     { id: "billing", name: "Billing", icon: "document-text-outline", badgeColor: "#FEF3C7", iconColor: "#D97706" },
@@ -483,7 +537,7 @@ exports.ADMIN_MODULES = [
     { id: "audit", name: "Audit", icon: "search-outline", badgeColor: "#F1F5F9", iconColor: "#475569" },
     { id: "alerts", name: "Alerts", icon: "flash-outline", badgeColor: "#FEE2E2", iconColor: "#DC2626" },
 ];
-exports.ADMIN_REPORTS = [
+export const ADMIN_REPORTS = [
     { id: "rep-1", title: "Collection Report", subtitle: "₹18,50,000 collected", statusColor: "#10B981", tag: "Financial" },
     { id: "rep-2", title: "Expense Report", subtitle: "₹10,20,000 total expenses", statusColor: "#F59E0B", tag: "Accounts" },
     { id: "rep-3", title: "Defaulter List", subtitle: "12 flats with outstanding dues", statusColor: "#EF4444", tag: "Recovery" },

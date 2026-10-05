@@ -7,7 +7,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      user?: { id: string; role: UserRole; email: string };
+      user?: { id: string; role: UserRole; email: string; flatNumber?: string };
     }
   }
 }
@@ -25,7 +25,12 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction) {
 
   try {
     const payload = verifyAccessToken(header.slice("Bearer ".length).trim());
-    req.user = { id: payload.sub, role: payload.role, email: payload.email };
+    req.user = {
+      id: payload.sub,
+      role: payload.role,
+      email: payload.email,
+      flatNumber: payload.flatNumber,
+    };
     next();
   } catch {
     // Expired and forged tokens are deliberately indistinguishable to the client.

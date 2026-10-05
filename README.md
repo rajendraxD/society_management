@@ -119,12 +119,23 @@ Every route below requires a Bearer token **and** the matching role; a wrong rol
 
 | Role | Endpoints |
 |---|---|
-| Admin | `GET /api/admin/dashboard`, `/modules`, `/reports` |
-| Resident | `GET /api/resident/dashboard`, `/bills`; `POST /pay-bill`, `/pre-approve-visitor` |
+| Admin | `GET /api/admin/dashboard`, `/modules`, `/reports`, `/complaints`; `POST /complaints/:id/status` |
+| Resident | `GET /api/resident/dashboard`, `/bills`, `/complaints`; `POST /pay-bill`, `/pre-approve-visitor`, `/complaints` |
 | Security | `GET /api/security/dashboard`; `POST /check-in`, `/check-out/:visitorId` |
 | Committee | `GET /api/committee/dashboard`; `POST /noc/:id/status` |
 
 `GET /api/health` is open and reports API and database status.
+
+### Resident data is scoped to the caller's flat
+
+A resident's flat comes from the **signed access token**, never from the request
+body. `/pay-bill` and `/pre-approve-visitor` accept a `flatNumber` for shape
+compatibility but ignore it: posting `{"flatNumber": "A-301"}` settles A-404, the
+flat on the token. This is what stops one resident from paying another's dues or
+issuing a gate pass to someone else's flat.
+
+`POST /resident/complaints` likewise files against the token's flat and the
+account holder's name.
 
 ---
 
@@ -256,7 +267,13 @@ frontend/
 | backend | `npm run dev` | Dev server with reload (tsx) |
 | backend | `npm run build` | Compile TypeScript to `dist/` |
 | backend | `npm start` | Run the compiled build |
+| backend | `npm test` | Build, then run the API suite (30 tests, no server or MongoDB needed) |
 | backend | `npm run seed` | Reset MongoDB to the demo dataset |
+| backend | `npm run e2e` | 73-assertion sweep against a **running** server; `PORT=8080 npm run e2e` to retarget |
 | frontend | `npm start` | Ionic dev server on :8100 |
 | frontend | `npm run build` | Production build to `www/` |
 | frontend | `npm run lint` | ESLint |
+
+`npm test` and `npm run e2e` overlap but are not redundant: `npm test` mounts the
+app in-process on an ephemeral port and needs nothing running, while `npm run e2e`
+exercises a real listener over the wire — closer to how the app is deployed.

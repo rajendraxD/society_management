@@ -1,17 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminController = void 0;
-const store_js_1 = require("../services/store.js");
-const errorHandler_js_1 = require("../middleware/errorHandler.js");
-exports.AdminController = {
-    getDashboardData: (0, errorHandler_js_1.asyncHandler)(async (_req, res) => {
+import { Store } from "../services/store.js";
+import { asyncHandler, ApiError } from "../middleware/errorHandler.js";
+export const AdminController = {
+    getDashboardData: asyncHandler(async (_req, res) => {
         const [society, kpis, monthlyCollection, expenseBreakdown, alerts, defaulters] = await Promise.all([
-            store_js_1.Store.getSociety(),
-            store_js_1.Store.getAdminKPIs(),
-            store_js_1.Store.getMonthlyCollectionChart(),
-            store_js_1.Store.getExpenseBreakdown(),
-            store_js_1.Store.getRecentAlerts(),
-            store_js_1.Store.getDefaulters(),
+            Store.getSociety(),
+            Store.getAdminKPIs(),
+            Store.getMonthlyCollectionChart(),
+            Store.getExpenseBreakdown(),
+            Store.getRecentAlerts(),
+            Store.getDefaulters(),
         ]);
         res.json({
             success: true,
@@ -19,22 +16,48 @@ exports.AdminController = {
             data: { society, kpis, monthlyCollection, expenseBreakdown, alerts, defaulters },
         });
     }),
-    getModules: (0, errorHandler_js_1.asyncHandler)(async (_req, res) => {
-        const modules = await store_js_1.Store.getModules();
+    /** Every complaint in the society, newest first. */
+    getComplaints: asyncHandler(async (_req, res) => {
+        const complaints = await Store.getComplaints();
+        res.json({
+            success: true,
+            message: "Complaints fetched successfully",
+            data: {
+                complaints,
+                summary: {
+                    open: complaints.filter((c) => c.status === "Open").length,
+                    inProgress: complaints.filter((c) => c.status === "In Progress").length,
+                    resolved: complaints.filter((c) => c.status === "Resolved").length,
+                },
+            },
+        });
+    }),
+    updateComplaintStatus: asyncHandler(async (req, res) => {
+        const { status, assignedTo } = req.body;
+        const result = await Store.updateComplaintStatus(String(req.params.id), status, assignedTo);
+        if (!result.success) {
+            throw new ApiError(404, result.message);
+        }
+        res.json({
+            success: true,
+            message: result.message,
+            data: { complaint: result.complaint },
+        });
+    }),
+    getModules: asyncHandler(async (_req, res) => {
+        const modules = await Store.getModules();
         res.json({
             success: true,
             message: "Modules fetched successfully",
-            count: modules.length,
-            modules,
+            data: { modules },
         });
     }),
-    getReports: (0, errorHandler_js_1.asyncHandler)(async (_req, res) => {
-        const reports = await store_js_1.Store.getReports();
+    getReports: asyncHandler(async (_req, res) => {
+        const reports = await Store.getReports();
         res.json({
             success: true,
             message: "Reports fetched successfully",
-            count: reports.length,
-            reports,
+            data: { reports },
         });
     }),
 };

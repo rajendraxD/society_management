@@ -13,6 +13,9 @@ import {
 } from "../../core/utils/format.utils";
 import {
   BillItem,
+  ComplaintCategory,
+  ComplaintItem,
+  ComplaintPriority,
   FamilyMember,
   NoticeItem,
   Vehicle,
@@ -62,6 +65,23 @@ export class ResidentComponent implements OnInit {
     { id: "documents", title: "My Documents", sub: "Agreement, receipts, NOCs", icon: "document-text-outline" },
   ];
 
+  readonly complaintCategories: ComplaintCategory[] = [
+    "Plumbing",
+    "Electrical",
+    "Lift",
+    "Security",
+    "Cleanliness",
+    "Parking",
+    "Other",
+  ];
+
+  readonly complaintPriorities: ComplaintPriority[] = [
+    "Low",
+    "Medium",
+    "High",
+    "Emergency",
+  ];
+
   residentName = "";
   email = "";
   flatNumber = "";
@@ -76,13 +96,23 @@ export class ResidentComponent implements OnInit {
   visitors: VisitorItem[] = [];
   familyMembers: FamilyMember[] = [];
   vehicles: Vehicle[] = [];
+  complaints: ComplaintItem[] = [];
 
   isPaymentModalOpen = false;
   isVisitorModalOpen = false;
+  isComplaintModalOpen = false;
+  /** Complaints load on first visit to the Support tab, not on every render. */
+  private complaintsLoaded = false;
   isPaying = false;
+  isSubmittingComplaint = false;
   newVisitorName = "";
   newVisitorPhone = "";
   newVisitorType: VisitorType = "Guest";
+
+  newComplaintTitle = "";
+  newComplaintDescription = "";
+  newComplaintCategory: ComplaintCategory = "Plumbing";
+  newComplaintPriority: ComplaintPriority = "Medium";
 
   /** Every unpaid bill added up — shown on the Bills tab. */
   get outstanding(): number {
@@ -132,6 +162,80 @@ export class ResidentComponent implements OnInit {
 
   switchTab(tab: string) {
     this.activeTab = tab as ResidentTab;
+    // Complaints are only ever needed on the Support tab, so they are fetched
+    // on first visit rather than on every dashboard load.
+    if (tab === "support" && this.complaintsLoaded === false) {
+      this.complaintsLoaded = true;
+      this.loadComplaints();
+    }
+  }
+
+  loadComplaints() {
+    this.apiService.getResidentComplaints().subscribe({
+      next: (data) => (this.complaints = data.complaints),
+      error: () => this.showToast("Could not load your complaints"),
+    });
+  }
+
+  openComplaintModal() {
+    this.isComplaintModalOpen = true;
+  }
+
+  closeComplaintModal() {
+    this.isComplaintModalOpen = false;
+  }
+
+  submitComplaint() {
+    if (this.isSubmittingComplaint) return;
+
+    const title = this.newComplaintTitle.trim();
+    const description = this.newComplaintDescription.trim();
+
+    // Mirrors the zod schema server-side, so the resident gets an immediate
+    // message instead of a round trip that ends in a 400.
+    if (title.length < 4) {
+      this.showToast("Give the issue a title of at least 4 characters");
+      return;
+    }
+    if (description.length < 10) {
+      this.showToast("Describe the issue in at least 10 characters");
+      return;
+    }
+
+    this.isSubmittingComplaint = true;
+    this.apiService
+      .createComplaint({
+        title,
+        description,
+        category: this.newComplaintCategory,
+        priority: this.newComplaintPriority,
+      })
+      .subscribe({
+        next: () => {
+          this.isSubmittingComplaint = false;
+          this.closeComplaintModal();
+          this.newComplaintTitle = "";
+          this.newComplaintDescription = "";
+          this.newComplaintCategory = "Plumbing";
+          this.newComplaintPriority = "Medium";
+          this.showToast("Complaint registered. The committee has been notified.");
+          this.loadComplaints();
+        },
+        error: () => {
+          this.isSubmittingComplaint = false;
+          this.showToast("Could not register the complaint. Please retry.");
+        },
+      });
+  }
+
+  complaintStatusTone(status: ComplaintItem["status"]): string {
+    if (status === "Resolved") return "green";
+    return status === "In Progress" ? "amber" : "red";
+  }
+
+  complaintPriorityTone(priority: ComplaintItem["priority"]): string {
+    if (priority === "Emergency" || priority === "High") return "red";
+    return priority === "Medium" ? "amber" : "green";
   }
 
   handleQuickAction(actionId: string) {
@@ -141,6 +245,10 @@ export class ResidentComponent implements OnInit {
     }
     if (actionId === "visitor") {
       this.switchTab("visitors");
+      return;
+    }
+    if (actionId === "complaint") {
+      this.openComplaintModal();
       return;
     }
     if (actionId === "notices") {

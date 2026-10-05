@@ -10,6 +10,11 @@ import {
   ApiResponse,
   BillItem,
   CommitteeStats,
+  ComplaintCategory,
+  ComplaintItem,
+  ComplaintPriority,
+  ComplaintStatus,
+  ComplaintSummary,
   DefaulterItem,
   ExpenseItem,
   ExpectedVisitorItem,
@@ -121,18 +126,41 @@ export class ApiService {
 
   getModules(): Observable<ManagementModule[]> {
     return this.http
-      .get<ApiResponse<never> & { modules: ManagementModule[] }>(
+      .get<ApiResponse<{ modules: ManagementModule[] }>>(
         `${this.baseUrl}/admin/modules`
       )
-      .pipe(map((res) => res.modules));
+      .pipe(map((res) => res.data.modules));
   }
 
   getReports(): Observable<ReportItem[]> {
     return this.http
-      .get<ApiResponse<never> & { reports: ReportItem[] }>(
-        `${this.baseUrl}/admin/reports`
+      .get<ApiResponse<{ reports: ReportItem[] }>>(`${this.baseUrl}/admin/reports`)
+      .pipe(map((res) => res.data.reports));
+  }
+
+  /** Every complaint in the society, with a status breakdown. */
+  getAllComplaints(): Observable<{
+    complaints: ComplaintItem[];
+    summary: ComplaintSummary;
+  }> {
+    return this.http
+      .get<
+        ApiResponse<{ complaints: ComplaintItem[]; summary: ComplaintSummary }>
+      >(`${this.baseUrl}/admin/complaints`)
+      .pipe(this.unwrap<{ complaints: ComplaintItem[]; summary: ComplaintSummary }>());
+  }
+
+  updateComplaintStatus(
+    id: string,
+    status: ComplaintStatus,
+    assignedTo?: string
+  ): Observable<{ complaint: ComplaintItem }> {
+    return this.http
+      .post<ApiResponse<{ complaint: ComplaintItem }>>(
+        `${this.baseUrl}/admin/complaints/${id}/status`,
+        { status, assignedTo }
       )
-      .pipe(map((res) => res.reports));
+      .pipe(this.unwrap<{ complaint: ComplaintItem }>());
   }
 
   /* ---------------- Resident ---------------- */
@@ -169,6 +197,32 @@ export class ApiService {
         payload
       )
       .pipe(this.unwrap<{ visitor: VisitorItem }>());
+  }
+
+  /**
+   * The caller's own complaints. `destinationFlat` is sent for shape only —
+   * the server files the complaint against the flat on the token.
+   */
+  getResidentComplaints(): Observable<{ complaints: ComplaintItem[] }> {
+    return this.http
+      .get<ApiResponse<{ complaints: ComplaintItem[] }>>(
+        `${this.baseUrl}/resident/complaints`
+      )
+      .pipe(this.unwrap<{ complaints: ComplaintItem[] }>());
+  }
+
+  createComplaint(payload: {
+    title: string;
+    category: ComplaintCategory;
+    description: string;
+    priority: ComplaintPriority;
+  }): Observable<{ complaint: ComplaintItem }> {
+    return this.http
+      .post<ApiResponse<{ complaint: ComplaintItem }>>(
+        `${this.baseUrl}/resident/complaints`,
+        payload
+      )
+      .pipe(this.unwrap<{ complaint: ComplaintItem }>());
   }
 
   /* ---------------- Security ---------------- */

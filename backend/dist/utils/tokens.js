@@ -1,15 +1,4 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.REFRESH_COOKIE_NAME = void 0;
-exports.signAccessToken = signAccessToken;
-exports.signRefreshToken = signRefreshToken;
-exports.verifyAccessToken = verifyAccessToken;
-exports.verifyRefreshToken = verifyRefreshToken;
-exports.refreshCookieMaxAge = refreshCookieMaxAge;
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+import jwt from "jsonwebtoken";
 const ACCESS_EXPIRES = process.env.ACCESS_TOKEN_EXPIRES || "15m";
 const REFRESH_EXPIRES = process.env.REFRESH_TOKEN_EXPIRES || "7d";
 /**
@@ -26,24 +15,26 @@ function secret(name, devFallback) {
     }
     return devFallback;
 }
-function signAccessToken(payload) {
-    return jsonwebtoken_1.default.sign(payload, secret("JWT_ACCESS_SECRET", "dev-access-secret"), {
-        expiresIn: ACCESS_EXPIRES,
-    });
+export function signAccessToken(payload) {
+    return jwt.sign(
+    // `flatNumber: undefined` would still land in the payload as a null claim.
+    payload.flatNumber
+        ? payload
+        : { sub: payload.sub, role: payload.role, email: payload.email }, secret("JWT_ACCESS_SECRET", "dev-access-secret"), { expiresIn: ACCESS_EXPIRES });
 }
-function signRefreshToken(payload) {
-    return jsonwebtoken_1.default.sign(payload, secret("JWT_REFRESH_SECRET", "dev-refresh-secret"), {
+export function signRefreshToken(payload) {
+    return jwt.sign(payload, secret("JWT_REFRESH_SECRET", "dev-refresh-secret"), {
         expiresIn: REFRESH_EXPIRES,
     });
 }
-function verifyAccessToken(token) {
-    return jsonwebtoken_1.default.verify(token, secret("JWT_ACCESS_SECRET", "dev-access-secret"));
+export function verifyAccessToken(token) {
+    return jwt.verify(token, secret("JWT_ACCESS_SECRET", "dev-access-secret"));
 }
-function verifyRefreshToken(token) {
-    return jsonwebtoken_1.default.verify(token, secret("JWT_REFRESH_SECRET", "dev-refresh-secret"));
+export function verifyRefreshToken(token) {
+    return jwt.verify(token, secret("JWT_REFRESH_SECRET", "dev-refresh-secret"));
 }
 /** Refresh-cookie lifetime in ms, derived from the same config as the token. */
-function refreshCookieMaxAge() {
+export function refreshCookieMaxAge() {
     const days = /^(\d+)d$/.exec(REFRESH_EXPIRES);
     if (days)
         return Number(days[1]) * 24 * 60 * 60 * 1000;
@@ -52,4 +43,4 @@ function refreshCookieMaxAge() {
         return Number(hours[1]) * 60 * 60 * 1000;
     return 7 * 24 * 60 * 60 * 1000;
 }
-exports.REFRESH_COOKIE_NAME = "society_refresh_token";
+export const REFRESH_COOKIE_NAME = "society_refresh_token";

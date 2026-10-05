@@ -7,6 +7,5 @@
  */
 export const environment = {
   production: true,
-  // apiBaseUrl: "https://api.your-domain.com/api",
-  apiBaseUrl: "https://society-management-backend-k7dv.onrender.com/api",
+  apiBaseUrl: "https://api.your-domain.com/api",
 };
