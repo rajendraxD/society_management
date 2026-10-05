@@ -74,3 +74,7 @@ Thumbs.db
 shots
 android
 www
+# Environment & Secrets
+.env
+*.env
+backend/dist/
